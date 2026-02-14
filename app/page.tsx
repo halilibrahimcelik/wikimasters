@@ -1,4 +1,4 @@
-import WikiCard from "@/components/features/WikiCard";
+import WikiCard from "@/components/features/wikicards/wiki-card";
 
 export default function Page() {
   return (

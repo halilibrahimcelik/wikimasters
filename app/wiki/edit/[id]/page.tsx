@@ -1,4 +1,4 @@
-import WikiEditor from "@/components/features/WikiEditor";
+import WikiEditor from "@/components/features/wikicards/wiki-editor";
 
 interface EditArticlePageProps {
   params: Promise<{

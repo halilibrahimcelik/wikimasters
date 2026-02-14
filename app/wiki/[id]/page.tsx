@@ -1,4 +1,4 @@
-import WikiArticleViewer from "@/components/features/WikiArticleViewer";
+import WikiArticleViewer from "@/components/features/wikicards/wiki-article-viewer";
 
 interface ViewArticlePageProps {
   params: Promise<{

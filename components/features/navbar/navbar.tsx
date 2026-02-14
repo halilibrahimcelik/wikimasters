@@ -1,13 +1,17 @@
-"use client";
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
+import { SignOutButton } from "./signout-button";
+import { SignInButton } from "./signin-button";
+import { stackServerApp } from "@/stack/server";
+import { UserButton } from "@stackframe/stack";
 
-const Navbar: React.FC = () => {
+export const Navbar: React.FC = async () => {
+  const user = await stackServerApp.getUser();
+  console.log(user);
   return (
     <nav
       className="w-full border-b bg-white backdrop-blur 
@@ -23,22 +27,20 @@ const Navbar: React.FC = () => {
           </Link>
           <NavigationMenu>
             <NavigationMenuList className={"gap-2"}>
-              <NavigationMenuItem>
-                <Link
-                  href={"sign-in"}
-                  className={buttonVariants({ variant: "outline", size: "sm" })}
-                >
-                  Sign-in
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link
-                  href={"sign-up"}
-                  className={buttonVariants({ variant: "default", size: "sm" })}
-                >
-                  Sign Up
-                </Link>
-              </NavigationMenuItem>
+              {user ? (
+                <NavigationMenuItem>
+                  <UserButton />
+                </NavigationMenuItem>
+              ) : (
+                <>
+                  <NavigationMenuItem>
+                    <SignOutButton />
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <SignInButton />
+                  </NavigationMenuItem>
+                </>
+              )}
             </NavigationMenuList>
           </NavigationMenu>
         </div>
@@ -46,4 +48,3 @@ const Navbar: React.FC = () => {
     </nav>
   );
 };
-export default Navbar;
