@@ -1,4 +1,5 @@
 import WikiArticleViewer from "@/components/features/wikicards/wiki-article-viewer";
+import { stackServerApp } from "@/stack/server";
 
 interface ViewArticlePageProps {
   params: Promise<{
@@ -10,7 +11,7 @@ export default async function ViewArticlePage({
   params,
 }: ViewArticlePageProps) {
   const { id } = await params;
-
+  await stackServerApp.getUser({ or: "redirect" });
   // Mock permission check - in a real app, this would come from auth/user context
   const canEdit = true; // Set to true for demonstration
 
