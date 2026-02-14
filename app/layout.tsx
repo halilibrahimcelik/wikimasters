@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { StackProvider, StackTheme } from "@stackframe/stack";
+import { stackClientApp } from "../stack/client";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/features/navbar";
@@ -20,10 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${jetbrainsMono.variable} antialiased`}>
-      <body>
+      <body><StackProvider app={stackClientApp}><StackTheme>
         <Navbar />
         {children}
-      </body>
+      </StackTheme></StackProvider></body>
     </html>
   );
 }

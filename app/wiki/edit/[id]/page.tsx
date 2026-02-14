@@ -36,11 +36,13 @@ This would normally be fetched from your API.`,
       : {};
 
   return (
-    <WikiEditor
-      initialTitle={mockData.title}
-      initialContent={mockData.content}
-      isEditing={true}
-      articleId={id}
-    />
+    <div>
+      <WikiEditor
+        initialTitle={mockData.title}
+        initialContent={mockData.content}
+        isEditing={true}
+        articleId={id}
+      />
+    </div>
   );
 }
