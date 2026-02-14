@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { Button, ButtonProps } from "@/components/ui/button";
+import { Routes } from "@/types";
 
 interface SignOutButtonProps extends ButtonProps {}
 export const SignOutButton: React.FC<SignOutButtonProps> = ({
@@ -11,7 +12,7 @@ export const SignOutButton: React.FC<SignOutButtonProps> = ({
       nativeButton={false}
       variant={"outline"}
       size={"sm"}
-      render={(props) => <Link href={"/signup"} {...props} />}
+      render={(props) => <Link href={Routes.SIGNUP} {...props} />}
       {...buttonProps}
     >
       Sign Up

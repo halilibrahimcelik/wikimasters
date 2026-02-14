@@ -4,7 +4,7 @@ import {
   NavigationMenuItem,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { SignOutButton } from "./signout-button";
+import { SignOutButton } from "./signup-button";
 import { SignInButton } from "./signin-button";
 import { stackServerApp } from "@/stack/server";
 import { UserButton } from "@stackframe/stack";
