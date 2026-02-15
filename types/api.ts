@@ -11,3 +11,10 @@ export interface FileUploadResponse {
   filename?: string;
   message?: string;
 }
+export interface ArticleWikiData {
+  title: string;
+  content: string;
+  authorName: string;
+  createdAt: string;
+  id: number;
+}

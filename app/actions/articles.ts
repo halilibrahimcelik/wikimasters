@@ -1,6 +1,10 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import db from "@/db";
+import { articles } from "@/db/schema";
+import { ensureUserExist } from "@/db/sync-user";
 import { stackServerApp } from "@/stack/server";
 
 export type CreateArticleInput = {
@@ -16,15 +20,35 @@ export type UpdateArticleInput = {
   imageUrl?: string;
 };
 
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 export async function createArticle(data: CreateArticleInput) {
   const user = await stackServerApp.getUser();
   if (!user) {
     throw new Error("Unauthorized");
   }
-  // TODO: Replace with actual database call
-  console.log("✨ createArticle called:", data);
+  await ensureUserExist(user);
 
-  return { success: true, message: "Article create logged (stub)" };
+  const slug = generateSlug(data.title);
+
+  const [newArticle] = await db
+    .insert(articles)
+    .values({
+      title: data.title,
+      content: data.content,
+      slug,
+      authorId: data.authorId,
+      imageUrl: data.imageUrl,
+      published: false,
+    })
+    .returning();
+
+  return { success: true, article: newArticle };
 }
 
 export async function updateArticle(id: string, data: UpdateArticleInput) {
@@ -32,9 +56,24 @@ export async function updateArticle(id: string, data: UpdateArticleInput) {
   if (!user) {
     throw new Error("Unauthorized");
   }
-  // TODO: Replace with actual database update
-  console.log("📝 updateArticle called:", { id, ...data });
-  return { success: true, message: `Article ${id} update logged (stub)` };
+
+  const updateData: UpdateArticleInput & { updatedAt: string; slug?: string } =
+    {
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+
+  if (data.title) {
+    updateData.slug = generateSlug(data.title);
+  }
+
+  const [updatedArticle] = await db
+    .update(articles)
+    .set(updateData)
+    .where(eq(articles.id, Number(id)))
+    .returning();
+
+  return { success: true, article: updatedArticle };
 }
 
 export async function deleteArticle(id: string) {
@@ -42,9 +81,10 @@ export async function deleteArticle(id: string) {
   if (!user) {
     throw new Error("Unauthorized");
   }
-  // TODO: Replace with actual database delete
-  console.log("🗑️ deleteArticle called:", id);
-  return { success: true, message: `Article ${id} delete logged (stub)` };
+
+  await db.delete(articles).where(eq(articles.id, Number(id)));
+
+  return { success: true, message: `Article ${id} deleted successfully` };
 }
 
 // Form-friendly server action: accepts FormData from a client form and calls deleteArticle

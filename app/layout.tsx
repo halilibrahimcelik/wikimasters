@@ -4,6 +4,7 @@ import { JetBrains_Mono } from "next/font/google";
 import { stackClientApp } from "../stack/client";
 import "./globals.css";
 import { Navbar } from "@/components/features/navbar";
+import { StoreProvider } from "@/lib/redux/provider";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -24,12 +25,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${jetbrainsMono.variable} antialiased`}>
       <body>
-        <StackProvider app={stackClientApp}>
-          <StackTheme>
-            <Navbar />
-            {children}
-          </StackTheme>
-        </StackProvider>
+        <StoreProvider>
+          <StackProvider app={stackClientApp}>
+            <StackTheme>
+              <Navbar />
+              {children}
+            </StackTheme>
+          </StackProvider>
+        </StoreProvider>
       </body>
     </html>
   );

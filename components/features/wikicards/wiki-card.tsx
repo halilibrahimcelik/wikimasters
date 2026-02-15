@@ -7,27 +7,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ArticleWikiData } from "@/types/api";
 
-interface WikiCardProps {
-  title: string;
-  author: string;
-  date: string;
-  summary: string;
-  href: string;
-}
+interface WikiCardProps extends ArticleWikiData {}
 
 const WikiCard: React.FC<WikiCardProps> = ({
   title,
-  author,
-  date,
-  summary,
-  href,
+  authorName,
+  createdAt: date,
+  content: summary,
+  id,
 }) => {
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{author}</span>
+          <span>{authorName}</span>
           <span>•</span>
           <span>{date}</span>
         </div>
@@ -38,7 +33,7 @@ const WikiCard: React.FC<WikiCardProps> = ({
       </CardContent>
       <CardFooter className="pt-2">
         <Link
-          href={href}
+          href={`/wiki/${id}`}
           className="text-blue-600 hover:underline text-sm font-medium w-fit"
         >
           Read article &rarr;
