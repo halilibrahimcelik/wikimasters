@@ -18,6 +18,15 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+
+      "a11y": {
+        "useKeyWithClickEvents": "off",
+        "useSemanticElements": "off",
+        "noLabelWithoutControl": "off"
+      },
+      "style": {
+        "useImportType": "off"
+      },
       "suspicious": {
         "noUnknownAtRules": "off"
       }
