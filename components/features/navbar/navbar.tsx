@@ -1,13 +1,13 @@
+import { UserButton } from "@stackframe/stack";
 import Link from "next/link";
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { SignOutButton } from "./signup-button";
-import { SignInButton } from "./signin-button";
 import { stackServerApp } from "@/stack/server";
-import { UserButton } from "@stackframe/stack";
+import { SignInButton } from "./signin-button";
+import { SignOutButton } from "./signup-button";
 
 export const Navbar: React.FC = async () => {
   const user = await stackServerApp.getUser();

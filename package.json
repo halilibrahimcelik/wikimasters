@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "echo \"No tests yet\" && exit 0",
     "lint": "biome check",
     "lint:fix": "biome check --write",
     "lint:format": "biome format",

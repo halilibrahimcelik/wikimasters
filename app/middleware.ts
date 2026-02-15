@@ -1,5 +1,5 @@
-import { stackServerApp } from "@/stack/server";
 import { NextRequest, NextResponse } from "next/server";
+import { stackServerApp } from "@/stack/server";
 
 export async function middleware(request: NextRequest) {
   const user = await stackServerApp.getUser();

@@ -1,7 +1,7 @@
 "use server";
 
-import { stackServerApp } from "@/stack/server";
 import { redirect } from "next/navigation";
+import { stackServerApp } from "@/stack/server";
 
 export type CreateArticleInput = {
   title: string;

@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
 import { StackProvider, StackTheme } from "@stackframe/stack";
-import { stackClientApp } from "../stack/client";
+import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
+import { stackClientApp } from "../stack/client";
 import "./globals.css";
 import { Navbar } from "@/components/features/navbar";
+
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-sans",
