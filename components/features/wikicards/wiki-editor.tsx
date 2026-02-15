@@ -5,6 +5,7 @@ import { Upload, X } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import {
+  CreateArticleInput,
   UpdateArticleInput,
   createArticle,
   updateArticle,
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useUser } from "@stackframe/stack";
 
 interface WikiEditorProps {
   initialTitle?: string;
@@ -38,7 +40,9 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const user = useUser();
   // Validate form
+  console.log(isEditing, articleId);
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
@@ -97,7 +101,13 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
         await updateArticle(articleId, payload);
         alert("Article updated successfully (stub)");
       } else {
-        await updateArticle(articleId!, payload);
+        const newArticle: CreateArticleInput = {
+          title: payload.title!,
+          content: payload.content!,
+          imageUrl: payload.imageUrl,
+          authorId: user?.id!,
+        };
+        await createArticle(newArticle);
         alert("Article created successfully (stub)");
       }
     } catch (error) {

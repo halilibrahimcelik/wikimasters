@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { useGetArticlesQuery } from "@/lib/redux/features/articles/articlesApiSlice";
 import type { ArticleWikiData } from "@/types/api";
 import WikiCard from "./wiki-card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 type Props = {
   serverData?: ArticleWikiData[];
@@ -48,10 +50,22 @@ export function ArticlesList({ serverData }: Props) {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {articles.map((article) => (
-        <WikiCard key={article.id} {...article} />
-      ))}
+    <div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-4xl font-bold mb-8">All Articles</h1>
+
+        <Button
+          variant="primary"
+          render={(props) => <Link href={"/wiki/edit/new"} {...props} />}
+        >
+          New Article
+        </Button>
+      </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {articles.map((article) => (
+          <WikiCard key={article.id} {...article} />
+        ))}
+      </div>
     </div>
   );
 }

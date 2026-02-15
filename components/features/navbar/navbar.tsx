@@ -11,7 +11,6 @@ import { SignOutButton } from "./signup-button";
 
 export const Navbar: React.FC = async () => {
   const user = await stackServerApp.getUser();
-  console.log(user);
   return (
     <nav
       className="w-full border-b bg-white backdrop-blur 

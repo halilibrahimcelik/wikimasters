@@ -6,8 +6,6 @@ export default async function ArticlesPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-4xl font-bold mb-8">All Articles</h1>
-
       <ArticlesList serverData={articles} />
     </div>
   );

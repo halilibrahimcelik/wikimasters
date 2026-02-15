@@ -5,6 +5,7 @@ import db from "@/db";
 import { articles, usersSync } from "@/db/schema";
 
 export async function getArticlesFromDB() {
+  console.log(usersSync.id);
   try {
     const allArticles = await db
       .select({
