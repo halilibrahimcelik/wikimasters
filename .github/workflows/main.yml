@@ -23,5 +23,10 @@ jobs:
         run: npm test
       - name: Build project
         run: npm run build
+        env:
+          NEXT_PUBLIC_STACK_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_STACK_PROJECT_ID }}
+          NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: ${{ secrets.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY }}
+          STACK_SECRET_SERVER_KEY: ${{ secrets.STACK_SECRET_SERVER_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - name: log build success
         run: echo "Build and tests completed successfully!"
