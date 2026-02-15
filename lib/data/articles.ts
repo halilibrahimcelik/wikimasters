@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import db from "@/db";
 import { articles, usersSync } from "@/db/schema";
 
@@ -14,9 +14,11 @@ export async function getArticlesFromDB() {
         content: articles.content,
         authorName: usersSync.name,
         imageUrl: articles.imageUrl,
+        updatedAt: articles.updatedAt,
       })
       .from(articles)
-      .leftJoin(usersSync, eq(articles.authorId, usersSync.id));
+      .leftJoin(usersSync, eq(articles.authorId, usersSync.id))
+      .orderBy(desc(articles.updatedAt));
     return allArticles;
   } catch (error) {
     console.error("Error fetching articles:", error);
@@ -25,6 +27,9 @@ export async function getArticlesFromDB() {
 }
 
 export async function getArticleByIdFromDB(id: string) {
+  if (isNaN(Number(id))) {
+    return null; // Invalid ID format
+  }
   try {
     const article = await db
       .select({

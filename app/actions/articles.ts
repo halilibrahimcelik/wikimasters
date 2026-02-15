@@ -42,9 +42,9 @@ export async function createArticle(data: CreateArticleInput) {
       title: data.title,
       content: data.content,
       slug,
-      authorId: data.authorId,
+      authorId: user.id,
       imageUrl: data.imageUrl,
-      published: false,
+      published: true,
     })
     .returning();
 
@@ -67,13 +67,12 @@ export async function updateArticle(id: string, data: UpdateArticleInput) {
     updateData.slug = generateSlug(data.title);
   }
 
-  const [updatedArticle] = await db
+  await db
     .update(articles)
     .set(updateData)
-    .where(eq(articles.id, Number(id)))
-    .returning();
+    .where(eq(articles.id, Number(id)));
 
-  return { success: true, article: updatedArticle };
+  return { success: true, message: `Article ${id} updated successfully` };
 }
 
 export async function deleteArticle(id: string) {

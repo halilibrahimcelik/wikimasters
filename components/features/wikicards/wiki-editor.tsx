@@ -5,7 +5,7 @@ import { Upload, X } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import {
-  CreateArticleInput,
+  UpdateArticleInput,
   createArticle,
   updateArticle,
 } from "@/app/actions/articles";
@@ -38,7 +38,6 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  console.log("isEditing", isEditing, "articleId", articleId);
   // Validate form
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -81,25 +80,25 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
     try {
       let imageUrl: string | undefined;
       console.log("Files to upload:", files);
+
       if (files.length > 0) {
-        const fd = new FormData();
-        fd.append("file", files[0]);
-        const uploaded = await uploadFile(fd);
-        imageUrl = uploaded.url;
-        const payload: CreateArticleInput = {
-          title: title.trim(),
-          content: content.trim(),
-          authorId: "user-1", //TODO wire real user id
-          imageUrl,
-        };
-        console.log("Payload for article:", payload);
-        if (isEditing && articleId) {
-          await updateArticle(articleId, payload);
-          alert("Article updated successfully (stub)");
-        } else {
-          await createArticle(payload);
-          alert("Article created successfully (stub)");
-        }
+        // const fd = new FormData();
+        // fd.append("file", files[0]);
+        // const uploaded = await uploadFile(fd);
+        // imageUrl = uploaded.url;
+      }
+      const payload: UpdateArticleInput = {
+        title: title.trim(),
+        content: content.trim(),
+        imageUrl,
+      };
+      console.log("Payload for article:", payload);
+      if (isEditing && articleId) {
+        await updateArticle(articleId, payload);
+        alert("Article updated successfully (stub)");
+      } else {
+        await updateArticle(articleId!, payload);
+        alert("Article created successfully (stub)");
       }
     } catch (error) {
       console.error("Error submitting article:", error);
