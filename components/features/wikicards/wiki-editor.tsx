@@ -8,6 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  createArticle,
+  CreateArticleInput,
+  updateArticle,
+} from "@/app/actions/articles";
+import { uploadFile } from "@/app/actions/upload";
 
 interface WikiEditorProps {
   initialTitle?: string;
@@ -79,30 +85,33 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
 
     setIsSubmitting(true);
 
-    const formData: FormData = {
-      title: title.trim(),
-      content: content.trim(),
-      files,
-    };
-
-    // Log the form data (as requested - no actual API calls)
-    console.log("Form submitted:", {
-      action: isEditing ? "edit" : "create",
-      articleId: isEditing ? articleId : undefined,
-      data: formData,
-    });
-
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    setIsSubmitting(false);
-
-    // In a real app, you would navigate after successful submission
-    alert(
-      `Article ${
-        isEditing ? "updated" : "created"
-      } successfully! Check console for form data.`,
-    );
+    try {
+      let imageUrl: string | undefined;
+      if (files.length > 0) {
+        const fd = new FormData();
+        fd.append("file", files[0]);
+        const uploaded = await uploadFile(fd);
+        imageUrl = uploaded.url;
+        const payload: CreateArticleInput = {
+          title: title.trim(),
+          content: content.trim(),
+          authorId: "user-1", //TODO wire real user id
+          imageUrl,
+        };
+        if (isEditing && articleId) {
+          await updateArticle(articleId, payload);
+          alert("Article updated successfully (stub)");
+        } else {
+          await createArticle(payload);
+          alert("Article created successfully (stub)");
+        }
+      }
+    } catch (error) {
+      console.error("Error submitting article:", error);
+      alert("An error occurred while saving the article. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handle cancel
