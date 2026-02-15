@@ -3,6 +3,7 @@
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import db from "@/db";
+import { authorizeUserToEditArticle } from "@/db/authz";
 import { articles } from "@/db/schema";
 import { ensureUserExist } from "@/db/sync-user";
 import { stackServerApp } from "@/stack/server";
@@ -56,6 +57,12 @@ export async function updateArticle(id: string, data: UpdateArticleInput) {
   if (!user) {
     throw new Error("Unauthorized");
   }
+  const isUserAuthorized = await authorizeUserToEditArticle(user.id, id);
+  if (!isUserAuthorized) {
+    throw new Error(
+      "Forbidden: You do not have permission to edit this article",
+    );
+  }
 
   const updateData: UpdateArticleInput & { updatedAt: string; slug?: string } =
     {
@@ -80,7 +87,12 @@ export async function deleteArticle(id: string) {
   if (!user) {
     throw new Error("Unauthorized");
   }
-
+  const isUserAuthorized = await authorizeUserToEditArticle(user.id, id);
+  if (!isUserAuthorized) {
+    throw new Error(
+      "Forbidden: You do not have permission to delete this article",
+    );
+  }
   await db.delete(articles).where(eq(articles.id, Number(id)));
 
   return { success: true, message: `Article ${id} deleted successfully` };

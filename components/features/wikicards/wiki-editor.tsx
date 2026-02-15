@@ -1,21 +1,20 @@
 "use client";
 
+import { useUser } from "@stackframe/stack";
 import MDEditor from "@uiw/react-md-editor";
 import { Upload, X } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import {
   CreateArticleInput,
-  UpdateArticleInput,
   createArticle,
+  UpdateArticleInput,
   updateArticle,
 } from "@/app/actions/articles";
-import { uploadFile } from "@/app/actions/upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUser } from "@stackframe/stack";
 
 interface WikiEditorProps {
   initialTitle?: string;
@@ -102,10 +101,10 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
         alert("Article updated successfully (stub)");
       } else {
         const newArticle: CreateArticleInput = {
-          title: payload.title!,
-          content: payload.content!,
+          title: payload.title ?? "",
+          content: payload.content ?? "",
           imageUrl: payload.imageUrl,
-          authorId: user?.id!,
+          authorId: user?.id || "", // This should be set on the server side based on the logged-in user
         };
         await createArticle(newArticle);
         alert("Article created successfully (stub)");

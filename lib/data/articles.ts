@@ -28,7 +28,7 @@ export async function getArticlesFromDB() {
 }
 
 export async function getArticleByIdFromDB(id: string) {
-  if (isNaN(Number(id))) {
+  if (Number.isNaN(Number(id))) {
     return null; // Invalid ID format
   }
   try {

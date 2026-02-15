@@ -1,11 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
+import { Button } from "@/components/ui/button";
 import { useGetArticlesQuery } from "@/lib/redux/features/articles/articlesApiSlice";
 import type { ArticleWikiData } from "@/types/api";
 import WikiCard from "./wiki-card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 type Props = {
   serverData?: ArticleWikiData[];

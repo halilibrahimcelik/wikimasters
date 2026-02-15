@@ -22,7 +22,7 @@ const WikiCard: React.FC<WikiCardProps> = ({
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{authorName}</span>
+          <span>{authorName ?? "Unknown "} </span>
           <span>•</span>
           <span>{date}</span>
         </div>
