@@ -13,8 +13,9 @@ export interface FileUploadResponse {
 }
 export interface ArticleWikiData {
   title: string;
-  content: string;
-  authorName: string;
-  createdAt: string;
   id: number;
+  createdAt: string | null;
+  content: string;
+  authorName: string | null;
+  imageUrl: string | null;
 }

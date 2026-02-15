@@ -38,7 +38,7 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  console.log("isEditing", isEditing, "articleId", articleId);
   // Validate form
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -78,9 +78,9 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
     }
 
     setIsSubmitting(true);
-
     try {
       let imageUrl: string | undefined;
+      console.log("Files to upload:", files);
       if (files.length > 0) {
         const fd = new FormData();
         fd.append("file", files[0]);
@@ -92,6 +92,7 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
           authorId: "user-1", //TODO wire real user id
           imageUrl,
         };
+        console.log("Payload for article:", payload);
         if (isEditing && articleId) {
           await updateArticle(articleId, payload);
           alert("Article updated successfully (stub)");

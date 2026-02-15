@@ -9,18 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
-
-interface ViewerArticle {
-  title: string;
-  author: string | null;
-  id: number;
-  content: string;
-  createdAt: string;
-  imageUrl?: string | null;
-}
+import { ArticleWikiData } from "@/types/api";
 
 interface WikiArticleViewerProps {
-  article: ViewerArticle;
+  article: ArticleWikiData;
   canEdit?: boolean;
   pageviews?: number | null;
 }
@@ -57,11 +49,11 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center">
               <User className="h-4 w-4 mr-1" />
-              <span>By {article.author ?? "Unknown"}</span>
+              <span>By {article.authorName ?? "Unknown"}</span>
             </div>
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-1" />
-              <span>{formatDate(article.createdAt)}</span>
+              <span>{formatDate(article.createdAt ?? "")}</span>
             </div>
             <div className="flex items-center">
               <Badge variant="secondary">Article</Badge>

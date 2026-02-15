@@ -1,10 +1,32 @@
 "use client";
 
+import { useMemo } from "react";
 import { useGetArticlesQuery } from "@/lib/redux/features/articles/articlesApiSlice";
+import type { ArticleWikiData } from "@/types/api";
 import WikiCard from "./wiki-card";
 
-export function ArticlesList() {
-  const { data: articles, isLoading, error } = useGetArticlesQuery();
+type Props = {
+  serverData?: ArticleWikiData[];
+};
+
+export function ArticlesList({ serverData }: Props) {
+  // Skip RTK Query if we have server data
+  const {
+    data: clientArticles,
+    isLoading,
+    error,
+  } = useGetArticlesQuery(undefined, {
+    skip: !!serverData,
+  });
+
+  // Use server data if available, otherwise use client data
+  const articles = useMemo(() => {
+    if (serverData) {
+      return serverData;
+    }
+    return clientArticles || [];
+  }, [serverData, clientArticles]);
+
   if (isLoading) {
     return <div className="text-center py-8">Loading articles...</div>;
   }
