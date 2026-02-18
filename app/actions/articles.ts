@@ -7,6 +7,7 @@ import { authorizeUserToEditArticle } from "@/db/authz";
 import { articles } from "@/db/schema";
 import { ensureUserExist } from "@/db/sync-user";
 import { stackServerApp } from "@/stack/server";
+import redis from "@/cache";
 
 export type CreateArticleInput = {
   title: string;
@@ -48,7 +49,7 @@ export async function createArticle(data: CreateArticleInput) {
       published: true,
     })
     .returning();
-
+  redis.del("articles:all"); // Invalidate articles list cache after creating a new article
   return { success: true, article: newArticle };
 }
 

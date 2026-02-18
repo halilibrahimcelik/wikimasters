@@ -1,6 +1,14 @@
 "use client";
 
-import { Calendar, ChevronRight, Edit, Home, Trash, User } from "lucide-react";
+import {
+  Calendar,
+  ChevronRight,
+  Edit,
+  Eye,
+  Home,
+  Trash,
+  User,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
@@ -10,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { ArticleWikiData } from "@/types/api";
+import React, { useEffect } from "react";
+import { incrementPageViews } from "@/app/actions/pageViews";
 
 interface WikiArticleViewerProps {
   article: ArticleWikiData;
@@ -20,8 +30,20 @@ interface WikiArticleViewerProps {
 const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
   article,
   canEdit = false,
+  pageviews,
 }) => {
-  // Format date for display
+  const [localPageViews, setLocalPageViews] = React.useState<number>(
+    pageviews ?? 0,
+  );
+
+  console.log("Initial page views:", pageviews);
+  useEffect(() => {
+    const fetchPageView = async () => {
+      const newCount = await incrementPageViews(article.id);
+      setLocalPageViews(newCount);
+    };
+    fetchPageView();
+  }, [article.id]);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -57,6 +79,11 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
             </div>
             <div className="flex items-center">
               <Badge variant="secondary">Article</Badge>
+            </div>
+            <div className="flex items-center ">
+              <Badge color="" className="">
+                <Eye className="h-4 w-4 mr-1" /> {localPageViews ?? ""} views
+              </Badge>
             </div>
           </div>
         </div>

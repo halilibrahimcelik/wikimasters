@@ -3,9 +3,15 @@
 import { desc, eq } from "drizzle-orm";
 import db from "@/db";
 import { articles, usersSync } from "@/db/schema";
+import redis from "@/cache";
 
 export async function getArticlesFromDB() {
-  console.log(usersSync.id);
+  const cached = await redis.get("articles:all");
+  if (cached) {
+    console.log("🎯 Get Articles cache hit");
+    return cached;
+  }
+  console.log("👻 cache miss for articles");
   try {
     const allArticles = await db
       .select({
@@ -20,6 +26,9 @@ export async function getArticlesFromDB() {
       .from(articles)
       .leftJoin(usersSync, eq(articles.authorId, usersSync.id))
       .orderBy(desc(articles.updatedAt));
+    redis.set("articles:all", allArticles, {
+      ex: 60, // Cache for 60 seconds
+    });
     return allArticles;
   } catch (error) {
     console.error("Error fetching articles:", error);
