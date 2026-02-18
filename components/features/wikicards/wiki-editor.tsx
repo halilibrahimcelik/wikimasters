@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { uploadFile } from "@/app/actions/upload";
 
 interface WikiEditorProps {
   initialTitle?: string;
@@ -41,7 +42,7 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const user = useUser();
   // Validate form
-  console.log(isEditing, articleId);
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
@@ -85,10 +86,11 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
       console.log("Files to upload:", files);
 
       if (files.length > 0) {
-        // const fd = new FormData();
-        // fd.append("file", files[0]);
-        // const uploaded = await uploadFile(fd);
-        // imageUrl = uploaded.url;
+        const fd = new FormData();
+        fd.append("files", files[0]); // For simplicity, only handle the first file
+        console.log("FormData prepared for upload:", fd.get("files"));
+        const uploaded = await uploadFile(fd);
+        imageUrl = uploaded.url;
       }
       const payload: UpdateArticleInput = {
         title: title.trim(),
@@ -270,6 +272,7 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
           <CardContent className="pt-6">
             <div className="flex justify-end space-x-4">
               <Button
+                nativeButton
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
@@ -278,6 +281,7 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
                 Cancel
               </Button>
               <Button
+                nativeButton
                 type="submit"
                 disabled={isSubmitting}
                 className="min-w-25"

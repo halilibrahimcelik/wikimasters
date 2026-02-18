@@ -44,7 +44,7 @@ export async function createArticle(data: CreateArticleInput) {
       content: data.content,
       slug,
       authorId: user.id,
-      imageUrl: data.imageUrl,
+      imageUrl: data.imageUrl ?? undefined,
       published: true,
     })
     .returning();
