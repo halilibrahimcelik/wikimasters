@@ -38,9 +38,26 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
 
   console.log("Initial page views:", pageviews);
   useEffect(() => {
+    const storageKey = `wiki-article-viewed-${article.id}`;
+
+    // Only increment page views once per session for this article
+    const hasWindow = typeof window !== "undefined";
+    const hasSessionStorage =
+      hasWindow && typeof window.sessionStorage !== "undefined";
+    const alreadyViewed =
+      hasSessionStorage && window.sessionStorage.getItem(storageKey) === "true";
+
+    if (alreadyViewed) {
+      return;
+    }
+
     const fetchPageView = async () => {
       const newCount = await incrementPageViews(article.id);
       setLocalPageViews(newCount);
+
+      if (hasSessionStorage) {
+        window.sessionStorage.setItem(storageKey, "true");
+      }
     };
     fetchPageView();
   }, [article.id]);

@@ -20,6 +20,10 @@ export const sendCelebrationEmail = async (
     .leftJoin(usersSync, eq(articles.authorId, usersSync.id))
     .where(eq(articles.id, articleId));
 
+  if (!response.length) {
+    console.log("❌ No article found for ID:", articleId);
+    return;
+  }
   const { email, id, title, name } = response[0];
   if (!email) {
     console.log("❌ No email found for user with ID:", id);

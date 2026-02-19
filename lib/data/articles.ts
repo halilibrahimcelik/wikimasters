@@ -26,7 +26,7 @@ export async function getArticlesFromDB() {
       .from(articles)
       .leftJoin(usersSync, eq(articles.authorId, usersSync.id))
       .orderBy(desc(articles.updatedAt));
-    redis.set("articles:all", allArticles, {
+    await redis.set("articles:all", allArticles, {
       ex: 60, // Cache for 60 seconds
     });
     return allArticles;

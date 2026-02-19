@@ -12,8 +12,7 @@ export const articles = pgTable("articles", {
   imageUrl: text("image_url"),
   authorId: text("author_id")
     .notNull()
-    .references(() => usersSync.id)
-    .notNull(),
+    .references(() => usersSync.id),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow(),
   published: boolean("published").default(false),

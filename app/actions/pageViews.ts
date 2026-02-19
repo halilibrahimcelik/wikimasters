@@ -18,7 +18,14 @@ export const incrementPageViews = async (articleId: number) => {
     console.log(
       `🎉 Article ${articleId} just hit ${newCount} page views! Sending celebration email...`,
     );
-    await sendCelebrationEmail(articleId, newCount);
+    try {
+      await sendCelebrationEmail(articleId, newCount);
+    } catch (error) {
+      console.error(
+        `Failed to send celebration email for article ${articleId} at ${newCount} page views:`,
+        error,
+      );
+    }
   } else {
     console.log(
       `Article ${articleId} page views incremented to ${newCount}. No email sent.`,

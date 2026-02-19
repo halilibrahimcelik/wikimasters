@@ -49,7 +49,7 @@ export async function createArticle(data: CreateArticleInput) {
       published: true,
     })
     .returning();
-  redis.del("articles:all"); // Invalidate articles list cache after creating a new article
+  await redis.del("articles:all"); // Invalidate articles list cache after creating a new article
   return { success: true, article: newArticle };
 }
 
