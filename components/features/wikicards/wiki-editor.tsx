@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@stackframe/stack";
 import MDEditor from "@uiw/react-md-editor";
 import { Upload, X } from "lucide-react";
 import type React from "react";
@@ -7,6 +8,7 @@ import { useState } from "react";
 import {
   CreateArticleInput,
   createArticle,
+  UpdateArticleInput,
   updateArticle,
 } from "@/app/actions/articles";
 import { uploadFile } from "@/app/actions/upload";
@@ -38,8 +40,9 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const user = useUser();
   // Validate form
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
@@ -78,27 +81,35 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
     }
 
     setIsSubmitting(true);
-
     try {
       let imageUrl: string | undefined;
+      console.log("Files to upload:", files);
+
       if (files.length > 0) {
         const fd = new FormData();
-        fd.append("file", files[0]);
+        fd.append("files", files[0]); // For simplicity, only handle the first file
+        console.log("FormData prepared for upload:", fd.get("files"));
         const uploaded = await uploadFile(fd);
         imageUrl = uploaded.url;
-        const payload: CreateArticleInput = {
-          title: title.trim(),
-          content: content.trim(),
-          authorId: "user-1", //TODO wire real user id
-          imageUrl,
+      }
+      const payload: UpdateArticleInput = {
+        title: title.trim(),
+        content: content.trim(),
+        imageUrl,
+      };
+      console.log("Payload for article:", payload);
+      if (isEditing && articleId) {
+        await updateArticle(articleId, payload);
+        alert("Article updated successfully (stub)");
+      } else {
+        const newArticle: CreateArticleInput = {
+          title: payload.title ?? "",
+          content: payload.content ?? "",
+          imageUrl: payload.imageUrl,
+          authorId: user?.id || "", // This should be set on the server side based on the logged-in user
         };
-        if (isEditing && articleId) {
-          await updateArticle(articleId, payload);
-          alert("Article updated successfully (stub)");
-        } else {
-          await createArticle(payload);
-          alert("Article created successfully (stub)");
-        }
+        await createArticle(newArticle);
+        alert("Article created successfully (stub)");
       }
     } catch (error) {
       console.error("Error submitting article:", error);
@@ -261,6 +272,7 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
           <CardContent className="pt-6">
             <div className="flex justify-end space-x-4">
               <Button
+                nativeButton
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
@@ -269,6 +281,7 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
                 Cancel
               </Button>
               <Button
+                nativeButton
                 type="submit"
                 disabled={isSubmitting}
                 className="min-w-25"

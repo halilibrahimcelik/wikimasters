@@ -1,26 +1,28 @@
 "use client";
 
-import { Calendar, ChevronRight, Edit, Home, Trash, User } from "lucide-react";
+import {
+  Calendar,
+  ChevronRight,
+  Edit,
+  Eye,
+  Home,
+  Trash,
+  User,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import React, { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { deleteArticleForm } from "@/app/actions/articles";
+import { incrementPageViews } from "@/app/actions/pageViews";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
-
-interface ViewerArticle {
-  title: string;
-  author: string | null;
-  id: number;
-  content: string;
-  createdAt: string;
-  imageUrl?: string | null;
-}
+import { ArticleWikiData } from "@/types/api";
 
 interface WikiArticleViewerProps {
-  article: ViewerArticle;
+  article: ArticleWikiData;
   canEdit?: boolean;
   pageviews?: number | null;
 }
@@ -28,8 +30,37 @@ interface WikiArticleViewerProps {
 const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
   article,
   canEdit = false,
+  pageviews,
 }) => {
-  // Format date for display
+  const [localPageViews, setLocalPageViews] = React.useState<number>(
+    pageviews ?? 0,
+  );
+
+  console.log("Initial page views:", pageviews);
+  useEffect(() => {
+    const storageKey = `wiki-article-viewed-${article.id}`;
+
+    // Only increment page views once per session for this article
+    const hasWindow = typeof window !== "undefined";
+    const hasSessionStorage =
+      hasWindow && typeof window.sessionStorage !== "undefined";
+    const alreadyViewed =
+      hasSessionStorage && window.sessionStorage.getItem(storageKey) === "true";
+
+    if (alreadyViewed) {
+      return;
+    }
+
+    const fetchPageView = async () => {
+      const newCount = await incrementPageViews(article.id);
+      setLocalPageViews(newCount);
+
+      if (hasSessionStorage) {
+        window.sessionStorage.setItem(storageKey, "true");
+      }
+    };
+    fetchPageView();
+  }, [article.id]);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -57,14 +88,19 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center">
               <User className="h-4 w-4 mr-1" />
-              <span>By {article.author ?? "Unknown"}</span>
+              <span>By {article.authorName ?? "Unknown"}</span>
             </div>
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-1" />
-              <span>{formatDate(article.createdAt)}</span>
+              <span>{formatDate(article.createdAt ?? "")}</span>
             </div>
             <div className="flex items-center">
               <Badge variant="secondary">Article</Badge>
+            </div>
+            <div className="flex items-center ">
+              <Badge color="" className="">
+                <Eye className="h-4 w-4 mr-1" /> {localPageViews ?? ""} views
+              </Badge>
             </div>
           </div>
         </div>
