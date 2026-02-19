@@ -2,12 +2,12 @@
 
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import redis from "@/cache";
 import db from "@/db";
 import { authorizeUserToEditArticle } from "@/db/authz";
 import { articles } from "@/db/schema";
 import { ensureUserExist } from "@/db/sync-user";
 import { stackServerApp } from "@/stack/server";
-import redis from "@/cache";
 
 export type CreateArticleInput = {
   title: string;

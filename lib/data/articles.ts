@@ -1,9 +1,9 @@
 "use server";
 
 import { desc, eq } from "drizzle-orm";
+import redis from "@/cache";
 import db from "@/db";
 import { articles, usersSync } from "@/db/schema";
-import redis from "@/cache";
 
 export async function getArticlesFromDB() {
   const cached = await redis.get("articles:all");

@@ -1,6 +1,7 @@
 "use server";
 import assert from "node:assert";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+
 assert(
   process.env.AWS_ACCESS_KEY_ID,
   "AWS_ACCESS_KEY_ID environment variable is required",

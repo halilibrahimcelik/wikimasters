@@ -11,15 +11,15 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import React, { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { deleteArticleForm } from "@/app/actions/articles";
+import { incrementPageViews } from "@/app/actions/pageViews";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { ArticleWikiData } from "@/types/api";
-import React, { useEffect } from "react";
-import { incrementPageViews } from "@/app/actions/pageViews";
 
 interface WikiArticleViewerProps {
   article: ArticleWikiData;
