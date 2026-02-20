@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 interface WikiEditorProps {
   initialTitle?: string;
@@ -135,13 +136,22 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">{pageTitle}</h1>
-        {isEditing && articleId && (
-          <p className="text-muted-foreground mt-2">
-            Editing article ID: {articleId}
-          </p>
-        )}
+      <div className="mb-8  flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">{pageTitle}</h1>
+          {isEditing && articleId && (
+            <p className="text-muted-foreground mt-2">
+              Editing article ID: {articleId}
+            </p>
+          )}
+        </div>
+
+        <Button
+          variant={"default"}
+          render={(props) => <Link href={`/wiki/${articleId}`} {...props} />}
+        >
+          Go Back
+        </Button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

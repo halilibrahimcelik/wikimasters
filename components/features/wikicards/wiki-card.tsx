@@ -28,7 +28,7 @@ const WikiCard: React.FC<WikiCardProps> = ({
         </div>
         <CardTitle className="text-lg">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="py-0">
+      <CardContent className="py-0 line-clamp-4">
         <CardDescription>{summary}</CardDescription>
       </CardContent>
       <CardFooter className="pt-2">
