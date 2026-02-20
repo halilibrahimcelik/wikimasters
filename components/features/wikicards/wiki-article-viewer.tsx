@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import { ArticleWikiData } from "@/types/api";
+import ShinyText from "@/components/ui/shiny-text";
+import { Routes } from "@/types";
 
 interface WikiArticleViewerProps {
   article: ArticleWikiData;
@@ -115,8 +117,27 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
 
       {/* Article Content */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-10 relative">
           {/* Article Image - Display if exists */}
+          <Button
+            variant={"secondary"}
+            className={
+              "cursor-pointer absolute top-[-10px] right-4 hover:scale-102 transition-transform duration-200"
+            }
+          >
+            <ShinyText
+              text="✨ Summerize "
+              speed={1.3}
+              delay={0}
+              color="#0b0101"
+              shineColor="#fdc700"
+              spread={60}
+              direction="left"
+              yoyo={true}
+              pauseOnHover={false}
+              disabled={false}
+            />
+          </Button>
           {article.imageUrl && (
             <div className="mb-8">
               <div className="relative w-full h-64 md:h-80 rounded-lg overflow-hidden">
@@ -228,32 +249,13 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
 
       {/* Footer Actions */}
       <div className="mt-8 flex justify-between items-center">
-        <Link href="/">
-          <Button variant="outline">← Back to Articles</Button>
-        </Link>
-
-        {canEdit && (
-          <div className="flex items-center gap-2">
-            <Link href={`/wiki/edit/${article.id}`} className="cursor-pointer">
-              <Button className="cursor-pointer">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit This Article
-              </Button>
-            </Link>
-
-            <form action={deleteArticleForm}>
-              <input type="hidden" name="id" value={String(article.id)} />
-              <Button
-                type="submit"
-                variant="destructive"
-                className="cursor-pointer"
-              >
-                <Trash className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-            </form>
-          </div>
-        )}
+        <Button
+          variant={"secondary"}
+          nativeButton={false}
+          render={(props) => <Link {...props} href={Routes.HOME} />}
+        >
+          Back to Articles
+        </Button>
       </div>
     </div>
   );

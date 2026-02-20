@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Routes } from "@/types";
 
 interface WikiEditorProps {
   initialTitle?: string;
@@ -147,8 +148,14 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
         </div>
 
         <Button
+          nativeButton={false}
           variant={"default"}
-          render={(props) => <Link href={`/wiki/${articleId}`} {...props} />}
+          render={(props) => (
+            <Link
+              href={!isEditing ? Routes.HOME : `/wiki/${articleId}`}
+              {...props}
+            />
+          )}
         >
           Go Back
         </Button>

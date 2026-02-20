@@ -26,13 +26,15 @@ export const Navbar: React.FC = async () => {
           </Link>
           <NavigationMenu>
             <NavigationMenuList className={"gap-2"}>
-              <NavigationMenuItem>
-                <LinkButton href={Routes.ARTICLES} text="New Article" />
-              </NavigationMenuItem>
               {user ? (
-                <NavigationMenuItem>
-                  <UserButton />
-                </NavigationMenuItem>
+                <>
+                  <NavigationMenuItem>
+                    <LinkButton href={Routes.ARTICLES} text="New Article" />
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <UserButton />
+                  </NavigationMenuItem>
+                </>
               ) : (
                 <>
                   <NavigationMenuItem>
