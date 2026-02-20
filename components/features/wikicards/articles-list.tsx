@@ -13,6 +13,24 @@ type Props = {
 
 export function ArticlesList({ serverData }: Props) {
   // Skip RTK Query if we have server data
+  const handleTestPrompt = () => {
+    fetch("/api/ai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt: "Hello, AI!" }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("AI Response:", data);
+        alert(`AI Response: ${data.message}`);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("Failed to get AI response");
+      });
+  };
   const {
     data: clientArticles,
     isLoading,
@@ -51,15 +69,9 @@ export function ArticlesList({ serverData }: Props) {
 
   return (
     <div>
+      <Button onClick={handleTestPrompt}>Test Prompt</Button>
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-bold mb-8">All Articles</h1>
-
-        <Button
-          variant="primary"
-          render={(props) => <Link href={"/wiki/edit/new"} {...props} />}
-        >
-          New Article
-        </Button>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {articles.map((article) => (

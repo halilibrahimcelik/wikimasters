@@ -8,6 +8,8 @@ import {
 import { stackServerApp } from "@/stack/server";
 import { SignInButton } from "./signin-button";
 import { SignOutButton } from "./signup-button";
+import LinkButton from "@/components/ui/link-button";
+import { Routes } from "@/types";
 
 export const Navbar: React.FC = async () => {
   const user = await stackServerApp.getUser();
@@ -26,6 +28,9 @@ export const Navbar: React.FC = async () => {
           </Link>
           <NavigationMenu>
             <NavigationMenuList className={"gap-2"}>
+              <NavigationMenuItem>
+                <LinkButton href={Routes.ARTICLES} text="New Article" />
+              </NavigationMenuItem>
               {user ? (
                 <NavigationMenuItem>
                   <UserButton />
@@ -33,10 +38,10 @@ export const Navbar: React.FC = async () => {
               ) : (
                 <>
                   <NavigationMenuItem>
-                    <SignOutButton />
+                    <LinkButton href={Routes.SIGNIN} text="Sign In" />
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                    <SignInButton />
+                    <LinkButton href={Routes.SIGNUP} text="Sign Up" />
                   </NavigationMenuItem>
                 </>
               )}
