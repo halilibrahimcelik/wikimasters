@@ -1,14 +1,12 @@
 import { UserButton } from "@stackframe/stack";
 import Link from "next/link";
+import LinkButton from "@/components/ui/link-button";
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { stackServerApp } from "@/stack/server";
-import { SignInButton } from "./signin-button";
-import { SignOutButton } from "./signup-button";
-import LinkButton from "@/components/ui/link-button";
 import { Routes } from "@/types";
 
 export const Navbar: React.FC = async () => {

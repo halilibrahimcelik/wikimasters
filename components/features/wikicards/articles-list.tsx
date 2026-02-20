@@ -1,6 +1,4 @@
 "use client";
-
-import Link from "next/link";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useGetArticlesQuery } from "@/lib/redux/features/articles/articlesApiSlice";

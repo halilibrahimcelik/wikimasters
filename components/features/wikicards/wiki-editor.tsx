@@ -3,6 +3,7 @@
 import { useUser } from "@stackframe/stack";
 import MDEditor from "@uiw/react-md-editor";
 import { Upload, X } from "lucide-react";
+import Link from "next/link";
 import type React from "react";
 import { useState } from "react";
 import {
@@ -16,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Link from "next/link";
 
 interface WikiEditorProps {
   initialTitle?: string;
