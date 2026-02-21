@@ -17,12 +17,13 @@ import { deleteArticleForm } from "@/app/actions/articles";
 import { incrementPageViews } from "@/app/actions/pageViews";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { formatDate } from "@/lib/utils";
-import { ArticleWikiData } from "@/types/api";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import ShinyText from "@/components/ui/shiny-text";
+import { formatDate } from "@/lib/utils";
 import { Routes } from "@/types";
-
+import { ArticleWikiData } from "@/types/api";
+import TextType from "@/components/ui/text-type";
+import { AISuccessResponse } from "@/app/api/ai/route";
 interface WikiArticleViewerProps {
   article: ArticleWikiData;
   canEdit?: boolean;
@@ -37,14 +38,66 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
   const [localPageViews, setLocalPageViews] = React.useState<number>(
     pageviews ?? 0,
   );
-
+  const [summary, setSummary] = React.useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = React.useState(false);
+  const articleRef = React.useRef<HTMLDivElement>(null);
   useEffect(() => {
+    let isMounted = true;
+
     const fetchPageView = async () => {
       const newCount = await incrementPageViews(article.id);
-      setLocalPageViews(newCount);
+      if (isMounted) {
+        setLocalPageViews(newCount);
+      }
     };
+
     fetchPageView();
+
+    return () => {
+      isMounted = false;
+    };
   }, [article.id]);
+  useEffect(() => {
+    if (summary && articleRef.current) {
+      articleRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [summary]);
+  const handleSummarizeArticle = async () => {
+    const controller = new AbortController(); // ✅ create controller
+
+    try {
+      setIsSummarizing(true);
+      const response = await fetch("/api/ai/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: {
+            text: "Summarize the following article content in 2-3 sentences:\n\n",
+            content: article.content,
+          },
+        }),
+        signal: controller.signal, // ✅ attach signal to fetch
+      });
+
+      const data: AISuccessResponse = await response.json();
+      if (data.created) {
+        setIsSummarizing(false);
+        setSummary(data.content);
+      }
+      // const delay = (ms: number) =>
+      //   new Promise((resolve) => setTimeout(resolve, ms));
+      // await delay(1000); // Simulate network delay
+
+      // Mocked summary response for testing
+    } catch (error) {
+      console.log("Error summarizing article:", error);
+    } finally {
+      setIsSummarizing(false);
+    }
+    return () => controller.abort(); // ✅ return cleanup function to abort on unmount
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -117,16 +170,18 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
 
       {/* Article Content */}
       <Card>
-        <CardContent className="pt-10 relative">
+        <CardContent className="pt-20 relative max-h-150 overflow-auto">
           {/* Article Image - Display if exists */}
           <Button
+            disabled={isSummarizing}
+            onClick={handleSummarizeArticle}
             variant={"secondary"}
             className={
-              "cursor-pointer absolute top-[-10px] right-4 hover:scale-102 transition-transform duration-200"
+              "cursor-pointer absolute top-0 right-4 hover:scale-102 transition-transform duration-200"
             }
           >
             <ShinyText
-              text="✨ Summerize "
+              text={isSummarizing ? "Summarizing..." : "✨ Summerize "}
               speed={1.3}
               delay={0}
               color="#0b0101"
@@ -246,6 +301,35 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
           </div>
         </CardContent>
       </Card>
+      {summary && !isSummarizing && (
+        <Card
+          ref={articleRef}
+          id="article-summary"
+          className="mt-6 bg-muted relative"
+        >
+          <CardContent>
+            <CardTitle className="text-2xl font-bold text-foreground mb-4">
+              Article Summary
+            </CardTitle>
+            <TextType
+              text={[summary]}
+              loop={false}
+              typingSpeed={10}
+              showCursor={false}
+              pauseDuration={1500}
+              hideCursorWhileTyping={true}
+              cursorCharacter="_"
+              deletingSpeed={50}
+              variableSpeedEnabled={false}
+              variableSpeedMin={60}
+              variableSpeedMax={120}
+              cursorBlinkDuration={0.5}
+              variableSpeed={undefined}
+              onSentenceComplete={undefined}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Footer Actions */}
       <div className="mt-8 flex justify-between items-center">
