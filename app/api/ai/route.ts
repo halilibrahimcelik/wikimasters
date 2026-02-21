@@ -1,11 +1,14 @@
 "use server";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 
 const RequestBodySchema = z.object({
   prompt: z.object({
     text: z.string(),
-    content: z.string(),
+    content: z
+      .string()
+      .min(1, "Content is required")
+      .max(7000, "Content too large"), // ✅ validation rules
   }),
 });
 // ✅ define response types
@@ -47,10 +50,10 @@ type OpenRouterResponse = {
 export const POST = async (
   request: NextRequest,
 ): Promise<NextResponse<AIResponse>> => {
-  const {
-    prompt: { text, content },
-  } = RequestBodySchema.parse(await request.json()); // ✅ validated + typed
   try {
+    const {
+      prompt: { text, content },
+    } = RequestBodySchema.parse(await request.json()); // ✅ validated + typed
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -93,14 +96,20 @@ export const POST = async (
       },
     );
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json<AIErrorResponse>(
+        {
+          error: error.message,
+        },
+        { status: 400 },
+      );
+    }
     console.error("API Error:", error);
-    return NextResponse.json(
+    return NextResponse.json<AIErrorResponse>(
       {
         error: "Failed to process the prompt",
       },
-      {
-        status: 500,
-      },
+      { status: 500 },
     );
   }
 };

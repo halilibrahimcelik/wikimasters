@@ -41,6 +41,7 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
   const [summary, setSummary] = React.useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = React.useState(false);
   const articleRef = React.useRef<HTMLDivElement>(null);
+  console.log(article.content.length);
   useEffect(() => {
     let isMounted = true;
 
@@ -81,18 +82,21 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
         signal: controller.signal, // ✅ attach signal to fetch
       });
 
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error); // ✅ now caught by catch block
+      }
+
       const data: AISuccessResponse = await response.json();
       if (data.created) {
         setIsSummarizing(false);
         setSummary(data.content);
       }
-      // const delay = (ms: number) =>
-      //   new Promise((resolve) => setTimeout(resolve, ms));
-      // await delay(1000); // Simulate network delay
-
-      // Mocked summary response for testing
     } catch (error) {
-      console.log("Error summarizing article:", error);
+      console.log(
+        "Error summarizing article:",
+        error instanceof Error ? error.message : error,
+      );
     } finally {
       setIsSummarizing(false);
     }
