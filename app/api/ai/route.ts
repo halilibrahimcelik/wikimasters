@@ -7,7 +7,7 @@ const RequestBodySchema = z.object({
     text: z.string(),
     content: z
       .string()
-      .min(1, "Content is required")
+      .min(10, "Content is too short")
       .max(7000, "Content too large"), // ✅ validation rules
   }),
 });

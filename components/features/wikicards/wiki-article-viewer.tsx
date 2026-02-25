@@ -3,6 +3,7 @@
 import {
   Calendar,
   ChevronRight,
+  CopyIcon,
   Edit,
   Eye,
   Home,
@@ -24,6 +25,11 @@ import { Routes } from "@/types";
 import { ArticleWikiData } from "@/types/api";
 import TextType from "@/components/ui/text-type";
 import { AISuccessResponse } from "@/app/api/ai/route";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 interface WikiArticleViewerProps {
   article: ArticleWikiData;
   canEdit?: boolean;
@@ -75,7 +81,7 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
         },
         body: JSON.stringify({
           prompt: {
-            text: "Summarize the following article content in 2-3 sentences:\n\n",
+            text: "Summarize the following article content in 2-3 sentences:Focus on the main idea and the most important details a reader should remember. Do not add opinions or unrelated information. The point is that readers can see the summary a glance and decide if they want to read more\n\n",
             content: article.content,
           },
         }),
@@ -176,27 +182,38 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
       <Card>
         <CardContent className="pt-20 relative max-h-150 overflow-auto">
           {/* Article Image - Display if exists */}
-          <Button
-            disabled={isSummarizing}
-            onClick={handleSummarizeArticle}
-            variant={"secondary"}
-            className={
-              "cursor-pointer absolute top-0 right-4 hover:scale-102 transition-transform duration-200"
-            }
-          >
-            <ShinyText
-              text={isSummarizing ? "Summarizing..." : "✨ Summerize "}
-              speed={1.3}
-              delay={0}
-              color="#0b0101"
-              shineColor="#fdc700"
-              spread={60}
-              direction="left"
-              yoyo={true}
-              pauseOnHover={false}
-              disabled={false}
-            />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={(props) => (
+                <Button
+                  {...props}
+                  disabled={isSummarizing}
+                  onClick={handleSummarizeArticle}
+                  variant={"secondary"}
+                  className={
+                    "cursor-pointer absolute top-0 right-4 hover:scale-102 transition-transform duration-200"
+                  }
+                >
+                  <ShinyText
+                    text={isSummarizing ? "Summarizing..." : "✨ Summerize "}
+                    speed={1.3}
+                    delay={0}
+                    color="#0b0101"
+                    shineColor="#fdc700"
+                    spread={60}
+                    direction="left"
+                    yoyo={true}
+                    pauseOnHover={false}
+                    disabled={false}
+                  />
+                </Button>
+              )}
+            ></TooltipTrigger>
+            <TooltipContent>
+              <p>You can summarize the article by clicking the button above.</p>
+            </TooltipContent>
+          </Tooltip>
+
           {article.imageUrl && (
             <div className="mb-8">
               <div className="relative w-full h-64 md:h-80 rounded-lg overflow-hidden">
@@ -309,8 +326,15 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
         <Card
           ref={articleRef}
           id="article-summary"
-          className="mt-6 bg-muted relative"
+          className="mt-6 bg-muted relative pt-12"
         >
+          <Button
+            variant={"destructive"}
+            className={"absolute right-4 top-4"}
+            size={"icon-lg"}
+          >
+            <CopyIcon />
+          </Button>
           <CardContent>
             <CardTitle className="text-2xl font-bold text-foreground mb-4">
               Article Summary

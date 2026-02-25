@@ -1,4 +1,5 @@
 import { StackProvider, StackTheme } from "@stackframe/stack";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import { stackClientApp } from "../stack/client";
@@ -29,7 +30,7 @@ export default function RootLayout({
           <StackProvider app={stackClientApp}>
             <StackTheme>
               <Navbar />
-              {children}
+              <TooltipProvider>{children}</TooltipProvider>
             </StackTheme>
           </StackProvider>
         </StoreProvider>
