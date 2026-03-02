@@ -150,7 +150,9 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
           variant={"default"}
           render={(props) => (
             <Link
-              href={!isEditing ? Routes.HOME : `/wiki/${articleId}`}
+              href={
+                !isEditing || !articleId ? Routes.HOME : `/wiki/${articleId}`
+              }
               {...props}
             />
           )}

@@ -29,7 +29,7 @@ export const Navbar: React.FC = async () => {
               {user ? (
                 <>
                   <NavigationMenuItem>
-                    <LinkButton href={Routes.ARTICLES} text="New Article" />
+                    <LinkButton href={Routes.NEW_ARTICLE} text="New Article" />
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <UserButton />
