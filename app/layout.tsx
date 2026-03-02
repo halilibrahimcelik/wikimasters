@@ -2,6 +2,7 @@ import { StackProvider, StackTheme } from "@stackframe/stack";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import { stackClientApp } from "../stack/client";
 import "./globals.css";
 import { Navbar } from "@/components/features/navbar";
@@ -31,6 +32,7 @@ export default function RootLayout({
             <StackTheme>
               <Navbar />
               <TooltipProvider>{children}</TooltipProvider>
+              <Toaster position="bottom-left" richColors />
             </StackTheme>
           </StackProvider>
         </StoreProvider>

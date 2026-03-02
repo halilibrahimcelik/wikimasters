@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect } from "react";
+import React, { useActionState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { deleteArticleForm } from "@/app/actions/articles";
 import { incrementPageViews } from "@/app/actions/pageViews";
@@ -30,6 +30,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 interface WikiArticleViewerProps {
   article: ArticleWikiData;
   canEdit?: boolean;
@@ -41,13 +42,28 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
   canEdit = false,
   pageviews,
 }) => {
+  const [deleteState, deleteAction] = useActionState(deleteArticleForm, null);
   const [localPageViews, setLocalPageViews] = React.useState<number>(
     pageviews ?? 0,
   );
+
+  useEffect(() => {
+    if (deleteState?.error) {
+      toast.error(deleteState.error);
+    }
+  }, [deleteState]);
   const [summary, setSummary] = React.useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = React.useState(false);
   const articleRef = React.useRef<HTMLDivElement>(null);
-  console.log(article.content.length);
+  const handleCopyText = () => {
+    if (summary) {
+      navigator.clipboard.writeText(summary);
+      toast.success("Summary copied to clipboard!", {
+        position: "bottom-left",
+        duration: 2500,
+      });
+    }
+  };
   useEffect(() => {
     let isMounted = true;
 
@@ -163,7 +179,7 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
             </Link>
 
             {/* Delete form calls the server action wrapper */}
-            <form action={deleteArticleForm}>
+            <form action={deleteAction}>
               <input type="hidden" name="id" value={String(article.id)} />
               <Button
                 type="submit"
@@ -329,6 +345,8 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
           className="mt-6 bg-muted relative pt-12"
         >
           <Button
+            onClick={handleCopyText}
+            title="Copy Your Text"
             variant={"destructive"}
             className={"absolute right-4 top-4"}
             size={"icon-lg"}

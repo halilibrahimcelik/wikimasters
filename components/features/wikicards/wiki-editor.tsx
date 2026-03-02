@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import { Routes } from "@/types";
 
 interface WikiEditorProps {
@@ -102,7 +103,7 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
       console.log("Payload for article:", payload);
       if (isEditing && articleId) {
         await updateArticle(articleId, payload);
-        alert("Article updated successfully (stub)");
+        toast.success("Article updated successfully");
       } else {
         const newArticle: CreateArticleInput = {
           title: payload.title ?? "",
@@ -111,11 +112,13 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
           authorId: user?.id || "", // This should be set on the server side based on the logged-in user
         };
         await createArticle(newArticle);
-        alert("Article created successfully (stub)");
+        toast.success("Article created successfully");
       }
     } catch (error) {
       console.error("Error submitting article:", error);
-      alert("An error occurred while saving the article. Please try again.");
+      toast.error(
+        "An error occurred while saving the article. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -123,14 +126,9 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
 
   // Handle cancel
   const handleCancel = () => {
-    // In a real app, you would navigate back
-    const shouldLeave = window.confirm(
-      "Are you sure you want to cancel? Any unsaved changes will be lost.",
-    );
-    if (shouldLeave) {
-      console.log("User cancelled editing");
-      // navigation logic would go here
-    }
+    toast("Changes discarded", {
+      description: "Any unsaved changes have been lost.",
+    });
   };
 
   const pageTitle = isEditing ? "Edit Article" : "Create New Article";
