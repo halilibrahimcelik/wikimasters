@@ -1,8 +1,8 @@
 import { StackProvider, StackTheme } from "@stackframe/stack";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { stackClientApp } from "../stack/client";
 import "./globals.css";
 import { Navbar } from "@/components/features/navbar";

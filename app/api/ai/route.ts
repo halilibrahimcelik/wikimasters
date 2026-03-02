@@ -1,6 +1,6 @@
 "use server";
 import { NextRequest, NextResponse } from "next/server";
-import { z, ZodError } from "zod";
+import { ZodError, z } from "zod";
 
 const RequestBodySchema = z.object({
   prompt: z.object({

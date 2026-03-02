@@ -14,23 +14,24 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useActionState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
 import { deleteArticleForm } from "@/app/actions/articles";
 import { incrementPageViews } from "@/app/actions/pageViews";
+import { AISuccessResponse } from "@/app/api/ai/route";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import ShinyText from "@/components/ui/shiny-text";
-import { formatDate } from "@/lib/utils";
-import { Routes } from "@/types";
-import { ArticleWikiData } from "@/types/api";
 import TextType from "@/components/ui/text-type";
-import { AISuccessResponse } from "@/app/api/ai/route";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { toast } from "sonner";
+import { formatDate } from "@/lib/utils";
+import { Routes } from "@/types";
+import { ArticleWikiData } from "@/types/api";
+
 interface WikiArticleViewerProps {
   article: ArticleWikiData;
   canEdit?: boolean;
