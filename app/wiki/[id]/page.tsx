@@ -14,8 +14,7 @@ export default async function ViewArticlePage({
 }: ViewArticlePageProps) {
   const { id } = await params;
   const user = await stackServerApp.getUser({ or: "redirect" });
-  // Mock permission check - in a real app, this would come from auth/user context
-  const userId = user?.id ?? "mockUserId";
+  const userId = user.id;
   const [article, canEdit] = await Promise.all([
     getArticleByIdFromDB(id),
     authorizeUserToEditArticle(userId, id),

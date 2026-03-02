@@ -85,15 +85,57 @@ export const POST = async (
       },
     );
 
-    const data: OpenRouterResponse = await response.json();
+    if (!response.ok) {
+      let errorText = "";
+      try {
+        errorText = await response.text();
+      } catch {
+        // ignore body parsing errors for non-OK responses
+      }
+      const status =
+        response.status >= 400 && response.status <= 599
+          ? response.status
+          : 502;
+      return NextResponse.json<AIErrorResponse>(
+        {
+          error:
+            errorText ||
+            `Upstream OpenRouter error: ${response.status} ${response.statusText}`,
+        },
+        { status },
+      );
+    }
+
+    let rawData: unknown;
+    try {
+      rawData = await response.json();
+    } catch {
+      return NextResponse.json<AIErrorResponse>(
+        { error: "Failed to parse response from AI provider" },
+        { status: 502 },
+      );
+    }
+
+    const data = rawData as Partial<OpenRouterResponse>;
+    const choice = data.choices?.[0];
+    const messageContent =
+      choice?.message && typeof choice.message.content === "string"
+        ? choice.message.content
+        : undefined;
+
+    if (typeof data.created !== "number" || !messageContent) {
+      return NextResponse.json<AIErrorResponse>(
+        { error: "Invalid response from AI provider" },
+        { status: 502 },
+      );
+    }
+
     return NextResponse.json(
       {
         created: data.created,
-        content: data.choices[0].message.content,
+        content: messageContent,
       },
-      {
-        status: 200,
-      },
+      { status: 200 },
     );
   } catch (error) {
     if (error instanceof ZodError) {

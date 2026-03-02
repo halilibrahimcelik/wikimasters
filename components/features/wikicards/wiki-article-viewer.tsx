@@ -56,22 +56,49 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
   const [summary, setSummary] = React.useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = React.useState(false);
   const articleRef = React.useRef<HTMLDivElement>(null);
-  const handleCopyText = () => {
+  const abortControllerRef = React.useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  const handleCopyText = async () => {
     if (summary) {
-      navigator.clipboard.writeText(summary);
-      toast.success("Summary copied to clipboard!", {
-        position: "bottom-left",
-        duration: 2500,
-      });
+      if (!navigator?.clipboard?.writeText) {
+        toast.error("Copy to clipboard is not supported in this browser.", {
+          position: "bottom-left",
+          duration: 2500,
+        });
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(summary);
+        toast.success("Summary copied to clipboard!", {
+          position: "bottom-left",
+          duration: 2500,
+        });
+      } catch {
+        toast.error("Failed to copy summary to clipboard.", {
+          position: "bottom-left",
+          duration: 2500,
+        });
+      }
     }
   };
   useEffect(() => {
+    const sessionKey = `pageview_counted_${article.id}`;
+    if (sessionStorage.getItem(sessionKey)) {
+      return;
+    }
     let isMounted = true;
 
     const fetchPageView = async () => {
       const newCount = await incrementPageViews(article.id);
       if (isMounted) {
         setLocalPageViews(newCount);
+        sessionStorage.setItem(sessionKey, "1");
       }
     };
 
@@ -87,7 +114,9 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
     }
   }, [summary]);
   const handleSummarizeArticle = async () => {
-    const controller = new AbortController(); // ✅ create controller
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       setIsSummarizing(true);
@@ -102,12 +131,12 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
             content: article.content,
           },
         }),
-        signal: controller.signal, // ✅ attach signal to fetch
+        signal: controller.signal,
       });
 
       if (!response.ok) {
         const err = await response.json();
-        throw new Error(err.error); // ✅ now caught by catch block
+        throw new Error(err.error);
       }
 
       const data: AISuccessResponse = await response.json();
@@ -123,7 +152,6 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
     } finally {
       setIsSummarizing(false);
     }
-    return () => controller.abort(); // ✅ return cleanup function to abort on unmount
   };
 
   return (
@@ -197,7 +225,7 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
 
       {/* Article Content */}
       <Card>
-        <CardContent className="pt-20 relative max-h-150 overflow-auto">
+        <CardContent className="pt-20 relative max-h-[600px] overflow-auto">
           {/* Article Image - Display if exists */}
           <Tooltip>
             <TooltipTrigger
@@ -367,9 +395,6 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
               hideCursorWhileTyping={true}
               cursorCharacter="_"
               deletingSpeed={50}
-              variableSpeedEnabled={false}
-              variableSpeedMin={60}
-              variableSpeedMax={120}
               cursorBlinkDuration={0.5}
               variableSpeed={undefined}
               onSentenceComplete={undefined}
