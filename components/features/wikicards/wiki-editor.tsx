@@ -3,8 +3,10 @@
 import { useUser } from "@stackframe/stack";
 import MDEditor from "@uiw/react-md-editor";
 import { Upload, X } from "lucide-react";
+import Link from "next/link";
 import type React from "react";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   CreateArticleInput,
   createArticle,
@@ -16,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Routes } from "@/types";
 
 interface WikiEditorProps {
   initialTitle?: string;
@@ -100,7 +103,7 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
       console.log("Payload for article:", payload);
       if (isEditing && articleId) {
         await updateArticle(articleId, payload);
-        alert("Article updated successfully (stub)");
+        toast.success("Article updated successfully");
       } else {
         const newArticle: CreateArticleInput = {
           title: payload.title ?? "",
@@ -109,11 +112,13 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
           authorId: user?.id || "", // This should be set on the server side based on the logged-in user
         };
         await createArticle(newArticle);
-        alert("Article created successfully (stub)");
+        toast.success("Article created successfully");
       }
     } catch (error) {
       console.error("Error submitting article:", error);
-      alert("An error occurred while saving the article. Please try again.");
+      toast.error(
+        "An error occurred while saving the article. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -121,27 +126,39 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
 
   // Handle cancel
   const handleCancel = () => {
-    // In a real app, you would navigate back
-    const shouldLeave = window.confirm(
-      "Are you sure you want to cancel? Any unsaved changes will be lost.",
-    );
-    if (shouldLeave) {
-      console.log("User cancelled editing");
-      // navigation logic would go here
-    }
+    toast("Changes discarded", {
+      description: "Any unsaved changes have been lost.",
+    });
   };
 
   const pageTitle = isEditing ? "Edit Article" : "Create New Article";
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">{pageTitle}</h1>
-        {isEditing && articleId && (
-          <p className="text-muted-foreground mt-2">
-            Editing article ID: {articleId}
-          </p>
-        )}
+      <div className="mb-8  flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">{pageTitle}</h1>
+          {isEditing && articleId && (
+            <p className="text-muted-foreground mt-2">
+              Editing article ID: {articleId}
+            </p>
+          )}
+        </div>
+
+        <Button
+          nativeButton={false}
+          variant={"default"}
+          render={(props) => (
+            <Link
+              href={
+                !isEditing || !articleId ? Routes.HOME : `/wiki/${articleId}`
+              }
+              {...props}
+            />
+          )}
+        >
+          Go Back
+        </Button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

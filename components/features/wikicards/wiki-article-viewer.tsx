@@ -3,6 +3,7 @@
 import {
   Calendar,
   ChevronRight,
+  CopyIcon,
   Edit,
   Eye,
   Home,
@@ -11,14 +12,24 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect } from "react";
+import React, { useActionState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
 import { deleteArticleForm } from "@/app/actions/articles";
 import { incrementPageViews } from "@/app/actions/pageViews";
+import { AISuccessResponse } from "@/app/api/ai/route";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import ShinyText from "@/components/ui/shiny-text";
+import TextType from "@/components/ui/text-type";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { formatDate } from "@/lib/utils";
+import { Routes } from "@/types";
 import { ArticleWikiData } from "@/types/api";
 
 interface WikiArticleViewerProps {
@@ -32,35 +43,116 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
   canEdit = false,
   pageviews,
 }) => {
+  const [deleteState, deleteAction] = useActionState(deleteArticleForm, null);
   const [localPageViews, setLocalPageViews] = React.useState<number>(
     pageviews ?? 0,
   );
 
-  console.log("Initial page views:", pageviews);
   useEffect(() => {
-    const storageKey = `wiki-article-viewed-${article.id}`;
+    if (deleteState?.error) {
+      toast.error(deleteState.error);
+    }
+  }, [deleteState]);
+  const [summary, setSummary] = React.useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = React.useState(false);
+  const articleRef = React.useRef<HTMLDivElement>(null);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
-    // Only increment page views once per session for this article
-    const hasWindow = typeof window !== "undefined";
-    const hasSessionStorage =
-      hasWindow && typeof window.sessionStorage !== "undefined";
-    const alreadyViewed =
-      hasSessionStorage && window.sessionStorage.getItem(storageKey) === "true";
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
-    if (alreadyViewed) {
+  const handleCopyText = async () => {
+    if (summary) {
+      if (!navigator?.clipboard?.writeText) {
+        toast.error("Copy to clipboard is not supported in this browser.", {
+          position: "bottom-left",
+          duration: 2500,
+        });
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(summary);
+        toast.success("Summary copied to clipboard!", {
+          position: "bottom-left",
+          duration: 2500,
+        });
+      } catch {
+        toast.error("Failed to copy summary to clipboard.", {
+          position: "bottom-left",
+          duration: 2500,
+        });
+      }
+    }
+  };
+  useEffect(() => {
+    const sessionKey = `pageview_counted_${article.id}`;
+    if (sessionStorage.getItem(sessionKey)) {
       return;
     }
+    let isMounted = true;
 
     const fetchPageView = async () => {
       const newCount = await incrementPageViews(article.id);
-      setLocalPageViews(newCount);
-
-      if (hasSessionStorage) {
-        window.sessionStorage.setItem(storageKey, "true");
+      if (isMounted) {
+        setLocalPageViews(newCount);
+        sessionStorage.setItem(sessionKey, "1");
       }
     };
+
     fetchPageView();
+
+    return () => {
+      isMounted = false;
+    };
   }, [article.id]);
+  useEffect(() => {
+    if (summary && articleRef.current) {
+      articleRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [summary]);
+  const handleSummarizeArticle = async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      setIsSummarizing(true);
+      const response = await fetch("/api/ai/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: {
+            text: "Summarize the following article content in 2-3 sentences:Focus on the main idea and the most important details a reader should remember. Do not add opinions or unrelated information. The point is that readers can see the summary a glance and decide if they want to read more\n\n",
+            content: article.content,
+          },
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error);
+      }
+
+      const data: AISuccessResponse = await response.json();
+      if (data.created) {
+        setIsSummarizing(false);
+        setSummary(data.content);
+      }
+    } catch (error) {
+      console.log(
+        "Error summarizing article:",
+        error instanceof Error ? error.message : error,
+      );
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -116,7 +208,7 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
             </Link>
 
             {/* Delete form calls the server action wrapper */}
-            <form action={deleteArticleForm}>
+            <form action={deleteAction}>
               <input type="hidden" name="id" value={String(article.id)} />
               <Button
                 type="submit"
@@ -133,8 +225,40 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
 
       {/* Article Content */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-20 relative max-h-[600px] overflow-auto">
           {/* Article Image - Display if exists */}
+          <Tooltip>
+            <TooltipTrigger
+              render={(props) => (
+                <Button
+                  {...props}
+                  disabled={isSummarizing}
+                  onClick={handleSummarizeArticle}
+                  variant={"secondary"}
+                  className={
+                    "cursor-pointer absolute top-0 right-4 hover:scale-102 transition-transform duration-200"
+                  }
+                >
+                  <ShinyText
+                    text={isSummarizing ? "Summarizing..." : "✨ Summerize "}
+                    speed={1.3}
+                    delay={0}
+                    color="#0b0101"
+                    shineColor="#fdc700"
+                    spread={60}
+                    direction="left"
+                    yoyo={true}
+                    pauseOnHover={false}
+                    disabled={false}
+                  />
+                </Button>
+              )}
+            ></TooltipTrigger>
+            <TooltipContent>
+              <p>You can summarize the article by clicking the button above.</p>
+            </TooltipContent>
+          </Tooltip>
+
           {article.imageUrl && (
             <div className="mb-8">
               <div className="relative w-full h-64 md:h-80 rounded-lg overflow-hidden">
@@ -243,35 +367,51 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
           </div>
         </CardContent>
       </Card>
+      {summary && !isSummarizing && (
+        <Card
+          ref={articleRef}
+          id="article-summary"
+          className="mt-6 bg-muted relative pt-12"
+        >
+          <Button
+            onClick={handleCopyText}
+            title="Copy Your Text"
+            variant={"destructive"}
+            className={"absolute right-4 top-4"}
+            size={"icon-lg"}
+          >
+            <CopyIcon />
+          </Button>
+          <CardContent>
+            <CardTitle className="text-2xl font-bold text-foreground mb-4">
+              Article Summary
+            </CardTitle>
+            <TextType
+              text={[summary]}
+              loop={false}
+              typingSpeed={10}
+              showCursor={false}
+              pauseDuration={1500}
+              hideCursorWhileTyping={true}
+              cursorCharacter="_"
+              deletingSpeed={50}
+              cursorBlinkDuration={0.5}
+              variableSpeed={undefined}
+              onSentenceComplete={undefined}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Footer Actions */}
       <div className="mt-8 flex justify-between items-center">
-        <Link href="/">
-          <Button variant="outline">← Back to Articles</Button>
-        </Link>
-
-        {canEdit && (
-          <div className="flex items-center gap-2">
-            <Link href={`/wiki/edit/${article.id}`} className="cursor-pointer">
-              <Button className="cursor-pointer">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit This Article
-              </Button>
-            </Link>
-
-            <form action={deleteArticleForm}>
-              <input type="hidden" name="id" value={String(article.id)} />
-              <Button
-                type="submit"
-                variant="destructive"
-                className="cursor-pointer"
-              >
-                <Trash className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-            </form>
-          </div>
-        )}
+        <Button
+          variant={"secondary"}
+          nativeButton={false}
+          render={(props) => <Link {...props} href={Routes.HOME} />}
+        >
+          Back to Articles
+        </Button>
       </div>
     </div>
   );

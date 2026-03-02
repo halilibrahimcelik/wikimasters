@@ -1,10 +1,14 @@
 "use client";
 import Link from "next/link";
 import { Button, ButtonProps } from "@/components/ui/button";
-import { Routes } from "@/types";
 
-interface SignInButtonProps extends ButtonProps {}
-export const SignInButton: React.FC<SignInButtonProps> = ({
+interface LinkButtonProps extends ButtonProps {
+  href: string;
+  text: string;
+}
+const LinkButton: React.FC<LinkButtonProps> = ({
+  href,
+  text,
   ...buttonProps
 }) => {
   return (
@@ -12,10 +16,12 @@ export const SignInButton: React.FC<SignInButtonProps> = ({
       nativeButton={false}
       variant={"default"}
       size={"sm"}
-      render={(props) => <Link href={Routes.SIGNIN} {...props} />}
+      render={(props) => <Link href={href} {...props} />}
       {...buttonProps}
     >
-      Sign In
+      {text}
     </Button>
   );
 };
+
+export default LinkButton;

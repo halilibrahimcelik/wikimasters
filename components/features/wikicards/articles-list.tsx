@@ -1,8 +1,5 @@
 "use client";
-
-import Link from "next/link";
 import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { useGetArticlesQuery } from "@/lib/redux/features/articles/articlesApiSlice";
 import type { ArticleWikiData } from "@/types/api";
 import WikiCard from "./wiki-card";
@@ -13,6 +10,7 @@ type Props = {
 
 export function ArticlesList({ serverData }: Props) {
   // Skip RTK Query if we have server data
+
   const {
     data: clientArticles,
     isLoading,
@@ -53,13 +51,6 @@ export function ArticlesList({ serverData }: Props) {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-bold mb-8">All Articles</h1>
-
-        <Button
-          variant="primary"
-          render={(props) => <Link href={"/wiki/edit/new"} {...props} />}
-        >
-          New Article
-        </Button>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {articles.map((article) => (
