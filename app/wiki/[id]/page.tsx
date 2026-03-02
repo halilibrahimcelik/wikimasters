@@ -1,4 +1,5 @@
 import WikiArticleViewer from "@/components/features/wikicards/wiki-article-viewer";
+import { authorizeUserToEditArticle } from "@/db/authz";
 import { getArticleByIdFromDB } from "@/lib/data/articles";
 import { stackServerApp } from "@/stack/server";
 
@@ -12,10 +13,13 @@ export default async function ViewArticlePage({
   params,
 }: ViewArticlePageProps) {
   const { id } = await params;
-  await stackServerApp.getUser({ or: "redirect" });
+  const user = await stackServerApp.getUser({ or: "redirect" });
   // Mock permission check - in a real app, this would come from auth/user context
-  const canEdit = true; // Set to true for demonstration
-  const article = await getArticleByIdFromDB(id);
+  const userId = user?.id ?? "mockUserId";
+  const [article, canEdit] = await Promise.all([
+    getArticleByIdFromDB(id),
+    authorizeUserToEditArticle(userId, id),
+  ]);
 
   if (!article) {
     return (

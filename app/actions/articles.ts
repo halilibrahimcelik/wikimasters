@@ -100,13 +100,23 @@ export async function deleteArticle(id: string) {
 }
 
 // Form-friendly server action: accepts FormData from a client form and calls deleteArticle
-export async function deleteArticleForm(formData: FormData): Promise<void> {
+export async function deleteArticleForm(
+  _prevState: { error: string } | null,
+  formData: FormData,
+): Promise<{ error: string } | null> {
   const id = formData.get("id");
   if (!id) {
-    throw new Error("Missing article id");
+    return { error: "Missing article id" };
   }
 
-  await deleteArticle(String(id));
+  try {
+    await deleteArticle(String(id));
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : "Failed to delete article",
+    };
+  }
 
   // After deleting, redirect the user back to the homepage.
   redirect("/");
