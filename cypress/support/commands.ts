@@ -32,7 +32,7 @@ Cypress.Commands.add("visitArticle", (articleId: number) => {
 });
 
 // Get article by ID
-Cypress.Commands.add("getArticleById", (articleId: number) => {
+Cypress.Commands.add("getArticleById", (articleId: unknown) => {
   return cy.request(`/api/articles/${articleId}`);
 });
 
@@ -57,7 +57,8 @@ declare global {
       logout(): Chainable<void>;
       createArticle(title: string, content: string): Chainable<void>;
       visitArticle(articleId: number): Chainable<void>;
-      getArticleById(articleId: number): Chainable<unknown>;
+      // biome-ignore lint/suspicious/noExplicitAny: <we need to allow any type for response>
+      getArticleById(articleId: number): Chainable<Response<any>>;
       deleteArticle(): Chainable<void>;
       waitForArticles(): Chainable<void>;
     }
