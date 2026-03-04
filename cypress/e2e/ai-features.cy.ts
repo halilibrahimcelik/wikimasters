@@ -1,6 +1,6 @@
 describe("AI Features", () => {
   beforeEach(() => {
-    cy.login("test@example.com", "password");
+    cy.login();
     cy.createArticle(
       "Article for AI",
       "This is content that needs improvement",

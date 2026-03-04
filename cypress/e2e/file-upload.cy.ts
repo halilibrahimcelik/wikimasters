@@ -1,6 +1,6 @@
 describe("File Upload", () => {
   beforeEach(() => {
-    cy.login("test@example.com", "password");
+    cy.login();
     cy.visit("/wiki/edit/new");
   });
 

@@ -1,12 +1,51 @@
 // Custom Cypress commands for WikiMasters testing
 
-// Login command
-Cypress.Commands.add("login", (email: string, password: string) => {
-  cy.visit("/handler/sign-in");
-  cy.get('input[type="email"]').type(email);
-  cy.get('input[type="password"]').type(password);
-  cy.get('button[type="submit"]').click();
-  cy.url().should("not.include", "/sign-in");
+/**
+ * Login using the dedicated E2E test user credentials stored in cypress.env.json.
+ * Uses cy.session() to cache the authenticated session — login only runs once
+ * per spec file, not before every single test. This is much faster.
+ *
+ * Credentials are read from cypress.env.json (gitignored):
+ *   TEST_USER_EMAIL  — the real Stack Auth user email
+ *   TEST_USER_PASSWORD — the real Stack Auth user password
+ *
+ * To set up: create a dedicated test user in your Stack Auth dashboard
+ * at https://app.stack-auth.com and fill in cypress.env.json locally.
+ */
+Cypress.Commands.add("login", () => {
+  const email = Cypress.env("TEST_USER_EMAIL") as string;
+  const password = Cypress.env("TEST_USER_PASSWORD") as string;
+
+  if (!email || !password) {
+    throw new Error(
+      "Missing TEST_USER_EMAIL or TEST_USER_PASSWORD in cypress.env.json. " +
+        "Create a dedicated test user in Stack Auth dashboard and add credentials.",
+    );
+  }
+
+  // cy.session caches the session cookies/storage by the email key.
+  // The login UI flow only runs on first call per spec; subsequent tests
+  // restore the cached session instantly.
+  cy.session(
+    email,
+    () => {
+      cy.visit("/handler/sign-in");
+      cy.get('input[type="email"]', { timeout: 10000 }).type(email);
+      cy.get('input[type="password"]').type(password);
+      cy.get('button[type="submit"]').click();
+      // Wait until we're redirected away from the sign-in page
+      cy.url({ timeout: 15000 }).should("not.include", "sign-in");
+    },
+    {
+      // Re-use the cached session even across different specs
+      cacheAcrossSpecs: true,
+      // After restoring the session, validate we're actually logged in
+      validate() {
+        cy.visit("/");
+        cy.url().should("not.include", "sign-in");
+      },
+    },
+  );
 });
 
 // Logout command
@@ -53,7 +92,8 @@ Cypress.Commands.add("waitForArticles", () => {
 declare global {
   namespace Cypress {
     interface Chainable {
-      login(email: string, password: string): Chainable<void>;
+      /** Log in as the dedicated E2E test user (credentials from cypress.env.json). */
+      login(): Chainable<void>;
       logout(): Chainable<void>;
       createArticle(title: string, content: string): Chainable<void>;
       visitArticle(articleId: number): Chainable<void>;

@@ -24,7 +24,8 @@ describe("Article Management", () => {
 
   describe("Create Article", () => {
     beforeEach(() => {
-      cy.login("test@example.com", "password");
+      cy.login();
+      cy.visit("/");
     });
 
     it("navigates to create article page", () => {
@@ -53,7 +54,7 @@ describe("Article Management", () => {
 
   describe("Edit Article", () => {
     beforeEach(() => {
-      cy.login("test@example.com", "password");
+      cy.login();
       cy.createArticle("Original Title", "Original content");
     });
 
@@ -76,7 +77,7 @@ describe("Article Management", () => {
 
   describe("Delete Article", () => {
     beforeEach(() => {
-      cy.login("test@example.com", "password");
+      cy.login();
       cy.createArticle("Article to Delete", "Content");
     });
 

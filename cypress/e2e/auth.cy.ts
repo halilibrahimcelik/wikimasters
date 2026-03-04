@@ -19,12 +19,14 @@ describe("Authentication Flow", () => {
   });
 
   it("displays user menu when authenticated", () => {
-    cy.login("test@example.com", "password");
+    cy.login();
+    cy.visit("/");
     cy.get('[data-testid="user-menu"]').should("be.visible");
   });
 
   it("can log out", () => {
-    cy.login("test@example.com", "password");
+    cy.login();
+    cy.visit("/");
     cy.logout();
     cy.url().should("include", "/handler/sign-in");
   });
