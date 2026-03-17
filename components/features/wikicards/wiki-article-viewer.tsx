@@ -6,8 +6,13 @@ import {
   CopyIcon,
   Edit,
   Eye,
+  Facebook,
   Home,
+  Link2,
+  Linkedin,
+  Share2,
   Trash,
+  Twitter,
   User,
 } from "lucide-react";
 import Image from "next/image";
@@ -151,6 +156,43 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
       );
     } finally {
       setIsSummarizing(false);
+    }
+  };
+
+  const handleShareSocial = (platform: "twitter" | "facebook" | "linkedin") => {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(article.title);
+    const shareUrls = {
+      twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+      linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${text}`,
+    };
+    window.open(
+      shareUrls[platform],
+      "_blank",
+      "noopener,noreferrer,width=600,height=450",
+    );
+  };
+
+  const handleCopyLink = async () => {
+    if (!navigator.clipboard) {
+      toast.error("Copy to clipboard is not supported in this browser.", {
+        position: "bottom-left",
+        duration: 2500,
+      });
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!", {
+        position: "bottom-left",
+        duration: 2500,
+      });
+    } catch {
+      toast.error("Failed to copy link.", {
+        position: "bottom-left",
+        duration: 2500,
+      });
     }
   };
 
@@ -404,14 +446,62 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
       )}
 
       {/* Footer Actions */}
-      <div className="mt-8 flex justify-between items-center">
-        <Button
-          variant={"secondary"}
-          nativeButton={false}
-          render={(props) => <Link {...props} href={Routes.HOME} />}
-        >
-          Back to Articles
-        </Button>
+      <div className="mt-8 flex flex-col gap-6">
+        {/* Social Share Section */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Share2 className="h-4 w-4" />
+            <span>Share this article:</span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              className="cursor-pointer gap-2 hover:bg-[#1da1f2] hover:text-white hover:border-[#1da1f2] transition-colors"
+              onClick={() => handleShareSocial("twitter")}
+            >
+              <Twitter className="h-4 w-4" />
+              Twitter / X
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="cursor-pointer gap-2 hover:bg-[#1877f2] hover:text-white hover:border-[#1877f2] transition-colors"
+              onClick={() => handleShareSocial("facebook")}
+            >
+              <Facebook className="h-4 w-4" />
+              Facebook
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="cursor-pointer gap-2 hover:bg-[#0a66c2] hover:text-white hover:border-[#0a66c2] transition-colors"
+              onClick={() => handleShareSocial("linkedin")}
+            >
+              <Linkedin className="h-4 w-4" />
+              LinkedIn
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="cursor-pointer gap-2 hover:bg-muted transition-colors"
+              onClick={handleCopyLink}
+            >
+              <Link2 className="h-4 w-4" />
+              Copy Link
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <Button
+            variant={"secondary"}
+            nativeButton={false}
+            render={(props) => <Link {...props} href={Routes.HOME} />}
+          >
+            Back to Articles
+          </Button>
+        </div>
       </div>
     </div>
   );
