@@ -197,7 +197,7 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container  stagger-card mx-auto px-4 py-8 max-w-4xl">
       {/* Breadcrumb Navigation */}
       <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
         <Link

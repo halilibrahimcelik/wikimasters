@@ -26,7 +26,7 @@ export default async function EditArticlePage({
   }
 
   return (
-    <div>
+    <div className="stagger-card">
       <WikiEditor
         initialTitle={article.title}
         initialContent={article.content}

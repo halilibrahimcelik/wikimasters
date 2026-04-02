@@ -5,7 +5,7 @@ export default async function NewArticlePage() {
   await stackServerApp.getUser({ or: "redirect" });
 
   return (
-    <div>
+    <div className="stagger-card">
       <WikiEditor isEditing={false} />
     </div>
   );
