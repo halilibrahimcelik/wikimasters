@@ -22,7 +22,7 @@ import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import { deleteArticleForm } from "@/app/actions/articles";
 import { incrementPageViews } from "@/app/actions/pageViews";
-import { AISuccessResponse } from "@/app/api/ai/route";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -123,33 +123,41 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
+    setIsSummarizing(true);
+    setSummary(null);
+
     try {
-      setIsSummarizing(true);
       const response = await fetch("/api/ai/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: {
-            text: "Summarize the following article content in 2-3 sentences:Focus on the main idea and the most important details a reader should remember. Do not add opinions or unrelated information. The point is that readers can see the summary a glance and decide if they want to read more\n\n",
+            text: "Summarize the following article content in 2-3 sentences. Focus on the main idea and the most important details a reader should remember. Do not add opinions or unrelated information. The point is that readers can see the summary at a glance and decide if they want to read more.",
             content: article.content,
           },
         }),
         signal: controller.signal,
       });
 
-      if (!response.ok) {
-        const err = await response.json();
+      if (!response.ok || !response.body) {
+        const err = await response.json().catch(() => ({ error: "Unknown error" }));
         throw new Error(err.error);
       }
 
-      const data: AISuccessResponse = await response.json();
-      if (data.created) {
-        setIsSummarizing(false);
-        setSummary(data.content);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+
+      setIsSummarizing(false);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        accumulated += decoder.decode(value, { stream: true });
+        setSummary(accumulated);
       }
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
       console.log(
         "Error summarizing article:",
         error instanceof Error ? error.message : error,

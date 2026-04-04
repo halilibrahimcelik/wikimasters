@@ -26,3 +26,27 @@ export function stripMarkdown(content: string, maxLength = 160): string {
     .slice(0, maxLength);
   return raw.length === maxLength ? `${raw}…` : raw;
 }
+
+export const debounce = <F extends (...args: unknown[]) => Promise<void>>(
+  func: F,
+  waitFor: number,
+) => {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  const debouncedFn = (...args: Parameters<F>) => {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      timeout = null;
+      func(...args);
+    }, waitFor);
+  };
+
+  debouncedFn.cancel = () => {
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+  };
+
+  return debouncedFn;
+};
