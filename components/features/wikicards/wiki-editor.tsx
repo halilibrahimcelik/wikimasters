@@ -20,6 +20,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Routes } from "@/types";
 import { debounce } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import ShinyText from "@/components/ui/shiny-text";
 
 interface WikiEditorProps {
   initialTitle?: string;
@@ -42,7 +48,7 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [aiSuggestion, setAiSuggestion] = useState("");
-
+  const [isPolishing, setIsPolishing] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -117,6 +123,68 @@ Rules:
       console.error("AI fetch error:", error);
     }
   }, []);
+
+  const handlePolishArticle = async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setIsPolishing(true);
+
+    try {
+      const response = await fetch("/api/ai/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: {
+            text: `You are an expert article editor embedded in a wiki editor.
+You will receive the full article content. Your job is to polish it into a clean, professional final draft.
+
+Rules:
+- Preserve the original meaning, facts, and structure — do not invent or remove information
+- Fix grammar, punctuation, and spelling errors always enhance readability and flow
+- Improve sentence clarity: break up run-ons, vary sentence length, eliminate redundancy
+- Upgrade weak or vague word choices to more precise, engaging alternatives
+- Ensure smooth transitions between paragraphs and ideas
+- Keep the author's voice — do not make it sound generic or AI-generated
+- Preserve all Markdown formatting (headings, bold, lists, code blocks, links)
+- Output ONLY the polished article content — no preamble, no explanations, no commentary`,
+            content,
+          },
+          max_tokens: 2000,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok || !response.body) {
+        const err = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        throw new Error(err.error);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+
+      setIsPolishing(false);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        accumulated += decoder.decode(value, { stream: true });
+        setContent(accumulated);
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      console.log(
+        "Error polishing article:",
+        error instanceof Error ? error.message : error,
+      );
+    } finally {
+      setIsPolishing(false);
+    }
+  };
 
   // Debounced wrapper - waits 1200ms after user stops typing
   const debouncedFetch = useRef(
@@ -313,10 +381,41 @@ Rules:
         </Card>
 
         {/* Content Section */}
-        <Card>
+        <Card className="relative">
           <CardHeader>
             <CardTitle>Article Content</CardTitle>
           </CardHeader>
+          <Tooltip>
+            <TooltipTrigger
+              render={(props) => (
+                <Button
+                  {...props}
+                  disabled={isPolishing}
+                  onClick={handlePolishArticle}
+                  variant={"secondary"}
+                  className={
+                    "cursor-pointer absolute top-4 right-4 hover:scale-102 transition-transform duration-200"
+                  }
+                >
+                  <ShinyText
+                    text={isPolishing ? "Polishing..." : "✨ Polish with AI"}
+                    speed={1.3}
+                    delay={0}
+                    color="#0b0101"
+                    shineColor="#fdc700"
+                    spread={60}
+                    direction="left"
+                    yoyo={true}
+                    pauseOnHover={false}
+                    disabled={false}
+                  />
+                </Button>
+              )}
+            ></TooltipTrigger>
+            <TooltipContent>
+              <p>You can polish the article by clicking the button above.</p>
+            </TooltipContent>
+          </Tooltip>
           <CardContent>
             <div className="space-y-2">
               <Label htmlFor="content">Content (Markdown) *</Label>

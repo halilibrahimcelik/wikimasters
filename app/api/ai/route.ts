@@ -10,6 +10,7 @@ const RequestBodySchema = z.object({
       .min(5, "Content is too short")
       .max(7000, "Content too large"),
   }),
+  max_tokens: z.number().int().min(10).max(4000).optional(),
 });
 
 /** @deprecated Route now streams plain text. Kept for backward-compat imports. */
@@ -26,6 +27,7 @@ export const POST = async (request: NextRequest): Promise<Response> => {
   try {
     const {
       prompt: { text, content },
+      max_tokens = 40,
     } = RequestBodySchema.parse(await request.json());
 
     const upstream = await fetch(
@@ -41,7 +43,7 @@ export const POST = async (request: NextRequest): Promise<Response> => {
         body: JSON.stringify({
           model: "openai/gpt-4o-mini",
           stream: true,
-          max_tokens: 40,
+          max_tokens,
           messages: [
             {
               role: "system",
