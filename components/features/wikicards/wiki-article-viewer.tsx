@@ -140,7 +140,9 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
       });
 
       if (!response.ok || !response.body) {
-        const err = await response.json().catch(() => ({ error: "Unknown error" }));
+        const err = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
         throw new Error(err.error);
       }
 

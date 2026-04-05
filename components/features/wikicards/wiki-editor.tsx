@@ -18,14 +18,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Routes } from "@/types";
-import { debounce } from "@/lib/utils";
+import ShinyText from "@/components/ui/shiny-text";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import ShinyText from "@/components/ui/shiny-text";
+import { debounce } from "@/lib/utils";
+import { Routes } from "@/types";
 
 interface WikiEditorProps {
   initialTitle?: string;
