@@ -217,7 +217,7 @@ Rules:
       const current = contentRef.current;
       const joined = current.endsWith(" ")
         ? current + suggestion
-        : current + " " + suggestion;
+        : `${current} ${suggestion}`;
       contentRef.current = joined;
       aiSuggestionRef.current = "";
       setContent(joined);
