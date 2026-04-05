@@ -49,6 +49,9 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
   const user = useUser();
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastFetchedSentenceRef = useRef<string>("");
+  const aiSuggestionRef = useRef<string>("");
+  const contentRef = useRef<string>(content);
+  const editorContainerRef = useRef<HTMLDivElement | null>(null);
 
   // AI completion fetch - streams tokens as they arrive
   const fetchAICompletion = useCallback(async (value: string) => {
@@ -66,6 +69,7 @@ const WikiEditor: React.FC<WikiEditorProps> = ({
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
+    aiSuggestionRef.current = "";
     setAiSuggestion("");
 
     const aiPayload = {
@@ -101,9 +105,9 @@ Rules:
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        setAiSuggestion(
-          (prev) => prev + decoder.decode(value, { stream: true }),
-        );
+        const token = decoder.decode(value, { stream: true });
+        aiSuggestionRef.current += token;
+        setAiSuggestion((prev) => prev + token);
       }
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
@@ -129,14 +133,46 @@ Rules:
     };
   }, [debouncedFetch]);
 
+  // Capture Tab before MDEditor intercepts it (MDEditor calls stopPropagation on Tab for indentation)
+  useEffect(() => {
+    const container = editorContainerRef.current;
+    if (!container) return;
+    const textarea = container.querySelector("textarea");
+    if (!textarea) return;
+
+    const handleNativeTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const suggestion = aiSuggestionRef.current;
+      if (!suggestion) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const current = contentRef.current;
+      const joined = current.endsWith(" ")
+        ? current + suggestion
+        : current + " " + suggestion;
+      contentRef.current = joined;
+      aiSuggestionRef.current = "";
+      setContent(joined);
+      setAiSuggestion("");
+      lastFetchedSentenceRef.current = "";
+    };
+
+    textarea.addEventListener("keydown", handleNativeTab, true); // capture phase
+    return () => textarea.removeEventListener("keydown", handleNativeTab, true);
+  }, []);
+
   const handleContentChange = useCallback(
     (val: string | undefined) => {
       const newValue = val || "";
+      contentRef.current = newValue;
       setContent(newValue);
+      aiSuggestionRef.current = "";
+      setAiSuggestion("");
       debouncedFetch(newValue);
     },
     [debouncedFetch],
   );
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
@@ -151,7 +187,7 @@ Rules:
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
+  //console.log("joined version", content);
   // Handle file upload
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
@@ -285,7 +321,8 @@ Rules:
             <div className="space-y-2">
               <Label htmlFor="content">Content (Markdown) *</Label>
               <div
-                className={`border rounded-md ${
+                ref={editorContainerRef}
+                className={`border rounded-md overflow-hidden ${
                   errors.content ? "border-destructive" : ""
                 }`}
               >
@@ -300,6 +337,14 @@ Rules:
                     style: { fontSize: 14, lineHeight: 1.5 },
                   }}
                 />
+                {aiSuggestion && (
+                  <div className="flex items-center justify-between gap-2 border-t bg-muted/40 px-3 py-1.5 text-sm italic text-muted-foreground">
+                    <span className="truncate">{aiSuggestion}</span>
+                    <kbd className="shrink-0 rounded border bg-background px-1.5 py-0.5 font-mono text-xs not-italic">
+                      Tab ↵
+                    </kbd>
+                  </div>
+                )}
               </div>
 
               {errors.content && (
