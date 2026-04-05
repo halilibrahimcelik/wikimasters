@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WikiMasters 🧠✍️
 
-## Getting Started
+An AI-powered blog publishing platform where you can write, polish, and publish posts with the help of intelligent text completion.
 
-First, run the development server:
+## ✨ Features
+
+- 📝 **Blog Publishing** — Create and publish blog posts on any topic
+- 🤖 **AI Text Completion** — Get smart writing suggestions as you type
+- ✨ **AI Polish** — Refine and improve your content with AI assistance
+- 📋 **AI Summarization** — Summarize any article with a single click
+- 🔐 **Authentication** — Secure user accounts with full session management
+- 🖼️ **Image Uploads** — Store and manage images via AWS
+- ⚡ **Server Actions** — Leverages Next.js Server Actions API for seamless data handling
+
+## 🛠️ Tech Stack
+
+| Layer         | Technology                               |
+| ------------- | ---------------------------------------- |
+| Framework     | [Next.js](https://nextjs.org/)           |
+| Language      | TypeScript                               |
+| Auth          | [Stack Auth](https://stack-auth.com/)    |
+| Database      | [Neon PostgreSQL](https://neon.tech/)    |
+| Database ORM  | [Drizzle ORM](https://orm.drizzle.team/) |
+| Image Storage | [AWS S3](https://aws.amazon.com/s3/)     |
+| Caching       | [Upstash Redis](https://upstash.com/)    |
+| Email         | [Resend](https://resend.com/)            |
+| Styling       | [Tailwind CSS](https://tailwindcss.com/) |
+| API           | Next.js Server Actions                   |
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm
+
+> Install pnpm if you haven't already:
+>
+> ```bash
+> npm install -g pnpm
+> ```
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/halilibrahimcelik/wikimasters.git
+cd wikimasters
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create a `.env.local` file in the root directory and add the following:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+# Stack Auth
+NEXT_PUBLIC_STACK_PROJECT_ID=
+NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=
+STACK_SECRET_SERVER_KEY=
 
-## Learn More
+# Database (Neon PostgreSQL)
+DATABASE_URL=
 
-To learn more about Next.js, take a look at the following resources:
+# AWS S3
+AWS_S3_BUCKET_NAME=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION=
+BLOB_BASE_URL=
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Upstash Redis
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Resend (Email)
+RESEND_API_KEY=
 
-## Deploy on Vercel
+# AI Gateway
+AI_GATEWAY_API_KEY=
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Run the Development Server
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## 📁 Project Structure
+
+```
+wikimasters/
+├── app/              # Next.js App Router (pages & layouts)
+├── components/       # Reusable UI components
+├── lib/              # Utility functions & config
+├── db/               # Drizzle ORM schema & migrations
+├── actions/          # Next.js Server Actions
+└── public/           # Static assets
+```
+
+## 📄 License
+
+MIT
