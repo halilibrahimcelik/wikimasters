@@ -7,11 +7,13 @@ const RequestBodySchema = z.object({
     text: z.string(),
     content: z
       .string()
-      .min(10, "Content is too short")
-      .max(7000, "Content too large"), // ✅ validation rules
+      .min(5, "Content is too short")
+      .max(7000, "Content too large"),
   }),
+  max_tokens: z.number().int().min(10).max(4000).optional(),
 });
-// ✅ define response types
+
+/** @deprecated Route now streams plain text. Kept for backward-compat imports. */
 export type AISuccessResponse = {
   created: number;
   content: string;
@@ -21,136 +23,101 @@ export type AIErrorResponse = {
   error: string;
 };
 
-type AIResponse = AISuccessResponse | AIErrorResponse;
-
-type OpenRouterMessage = {
-  role: string;
-  content: string;
-};
-
-type OpenRouterChoice = {
-  index: number;
-  finish_reason: string;
-  message: OpenRouterMessage;
-  logprobs: null | object;
-};
-type OpenRouterResponse = {
-  id: string;
-  model: string;
-  object: string;
-  created: number;
-  choices: OpenRouterChoice[];
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-    cost: number;
-  };
-};
-export const POST = async (
-  request: NextRequest,
-): Promise<NextResponse<AIResponse>> => {
+export const POST = async (request: NextRequest): Promise<Response> => {
   try {
     const {
       prompt: { text, content },
-    } = RequestBodySchema.parse(await request.json()); // ✅ validated + typed
-    const response = await fetch(
+      max_tokens = 40,
+    } = RequestBodySchema.parse(await request.json());
+
+    const upstream = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${process.env.AI_GATEWAY_API_KEY}`,
-          "HTTP-Referer": process.env.SITE_URL ?? "", // Optional. Site URL for rankings on openrouter.ai.
-          "X-Title": process.env.SITE_NAME ?? "", // Optional. Site title for rankings on openrouter.ai.
+          "HTTP-Referer": process.env.SITE_URL ?? "",
+          "X-Title": process.env.SITE_NAME ?? "",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "openai/gpt-5-nano",
+          model: "openai/gpt-4o-mini",
+          stream: true,
+          max_tokens,
           messages: [
             {
+              role: "system",
+              content: text,
+            },
+            {
               role: "user",
-              content: [
-                {
-                  type: "text",
-                  text,
-                },
-                {
-                  type: "text",
-                  text: content,
-                },
-              ],
+              content,
             },
           ],
         }),
       },
     );
 
-    if (!response.ok) {
-      let errorText = "";
-      try {
-        errorText = await response.text();
-      } catch {
-        // ignore body parsing errors for non-OK responses
-      }
+    if (!upstream.ok || !upstream.body) {
       const status =
-        response.status >= 400 && response.status <= 599
-          ? response.status
+        upstream.status >= 400 && upstream.status <= 599
+          ? upstream.status
           : 502;
       return NextResponse.json<AIErrorResponse>(
-        {
-          error:
-            errorText ||
-            `Upstream OpenRouter error: ${response.status} ${response.statusText}`,
-        },
+        { error: `Upstream error: ${upstream.status} ${upstream.statusText}` },
         { status },
       );
     }
 
-    let rawData: unknown;
-    try {
-      rawData = await response.json();
-    } catch {
-      return NextResponse.json<AIErrorResponse>(
-        { error: "Failed to parse response from AI provider" },
-        { status: 502 },
-      );
-    }
+    // Parse SSE from OpenRouter and stream plain text tokens to the client
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    const reader = upstream.body.getReader();
 
-    const data = rawData as Partial<OpenRouterResponse>;
-    const choice = data.choices?.[0];
-    const messageContent =
-      choice?.message && typeof choice.message.content === "string"
-        ? choice.message.content
-        : undefined;
+    const stream = new ReadableStream({
+      async pull(controller) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            controller.close();
+            return;
+          }
 
-    if (typeof data.created !== "number" || !messageContent) {
-      return NextResponse.json<AIErrorResponse>(
-        { error: "Invalid response from AI provider" },
-        { status: 502 },
-      );
-    }
-
-    return NextResponse.json(
-      {
-        created: data.created,
-        content: messageContent,
+          const chunk = decoder.decode(value, { stream: true });
+          for (const line of chunk.split("\n")) {
+            if (!line.startsWith("data: ")) continue;
+            const payload = line.slice(6).trim();
+            if (payload === "[DONE]") {
+              controller.close();
+              return;
+            }
+            try {
+              const delta = JSON.parse(payload)?.choices?.[0]?.delta?.content;
+              if (delta) controller.enqueue(encoder.encode(delta));
+            } catch {
+              // skip malformed SSE chunks
+            }
+          }
+        }
       },
-      { status: 200 },
-    );
+      cancel() {
+        reader.cancel();
+      },
+    });
+
+    return new Response(stream, {
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json<AIErrorResponse>(
-        {
-          error: error.message,
-        },
+        { error: error.message },
         { status: 400 },
       );
     }
     console.error("API Error:", error);
     return NextResponse.json<AIErrorResponse>(
-      {
-        error: "Failed to process the prompt",
-      },
+      { error: "Failed to process the prompt" },
       { status: 500 },
     );
   }

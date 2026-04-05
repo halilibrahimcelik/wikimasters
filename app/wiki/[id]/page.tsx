@@ -1,12 +1,62 @@
+import type { Metadata } from "next";
 import WikiArticleViewer from "@/components/features/wikicards/wiki-article-viewer";
 import { authorizeUserToEditArticle } from "@/db/authz";
 import { getArticleByIdFromDB } from "@/lib/data/articles";
+import { stripMarkdown } from "@/lib/utils";
 import { stackServerApp } from "@/stack/server";
 
 interface ViewArticlePageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: ViewArticlePageProps): Promise<Metadata> {
+  const { id } = await params;
+  const article = await getArticleByIdFromDB(id);
+
+  if (!article) {
+    return {
+      title: "Article Not Found | WikiMasters",
+      description: "The article you are looking for does not exist.",
+    };
+  }
+
+  const description = stripMarkdown(article.content);
+
+  const BASE_URL =
+    process.env.NEXT_PUBLIC_BASE_URL ?? "https://wikimasters.com";
+  const articleUrl = `${BASE_URL}/wiki/${id}`;
+
+  const images = article.imageUrl
+    ? [{ url: article.imageUrl, width: 1200, height: 630, alt: article.title }]
+    : undefined;
+
+  return {
+    title: `${article.title} | WikiMasters`,
+    description,
+    openGraph: {
+      title: article.title,
+      description,
+      url: articleUrl,
+      siteName: "WikiMasters",
+      type: "article",
+      publishedTime: article.createdAt ?? undefined,
+      authors: article.authorName ? [article.authorName] : undefined,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description,
+      images: article.imageUrl ? [article.imageUrl] : undefined,
+    },
+    alternates: {
+      canonical: articleUrl,
+    },
+  };
 }
 
 export default async function ViewArticlePage({

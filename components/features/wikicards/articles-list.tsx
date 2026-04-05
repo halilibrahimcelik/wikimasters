@@ -53,8 +53,14 @@ export function ArticlesList({ serverData }: Props) {
         <h1 className="text-4xl font-bold mb-8">All Articles</h1>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {articles.map((article) => (
-          <WikiCard key={article.id} {...article} />
+        {articles.map((article, index) => (
+          <div
+            key={article.id}
+            className="stagger-card"
+            style={{ animationDelay: `${index * 80}ms` }}
+          >
+            <WikiCard {...article} />
+          </div>
         ))}
       </div>
     </div>

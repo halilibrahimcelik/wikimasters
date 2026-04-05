@@ -6,8 +6,13 @@ import {
   CopyIcon,
   Edit,
   Eye,
+  Facebook,
   Home,
+  Link2,
+  Linkedin,
+  Share2,
   Trash,
+  Twitter,
   User,
 } from "lucide-react";
 import Image from "next/image";
@@ -17,7 +22,7 @@ import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import { deleteArticleForm } from "@/app/actions/articles";
 import { incrementPageViews } from "@/app/actions/pageViews";
-import { AISuccessResponse } from "@/app/api/ai/route";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -118,33 +123,43 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
+    setIsSummarizing(true);
+    setSummary(null);
+
     try {
-      setIsSummarizing(true);
       const response = await fetch("/api/ai/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: {
-            text: "Summarize the following article content in 2-3 sentences:Focus on the main idea and the most important details a reader should remember. Do not add opinions or unrelated information. The point is that readers can see the summary a glance and decide if they want to read more\n\n",
+            text: "Summarize the following article content in 2-3 sentences. Focus on the main idea and the most important details a reader should remember. Do not add opinions or unrelated information. The point is that readers can see the summary at a glance and decide if they want to read more.",
             content: article.content,
           },
         }),
         signal: controller.signal,
       });
 
-      if (!response.ok) {
-        const err = await response.json();
+      if (!response.ok || !response.body) {
+        const err = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
         throw new Error(err.error);
       }
 
-      const data: AISuccessResponse = await response.json();
-      if (data.created) {
-        setIsSummarizing(false);
-        setSummary(data.content);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+
+      setIsSummarizing(false);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        accumulated += decoder.decode(value, { stream: true });
+        setSummary(accumulated);
       }
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
       console.log(
         "Error summarizing article:",
         error instanceof Error ? error.message : error,
@@ -154,8 +169,45 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
     }
   };
 
+  const handleShareSocial = (platform: "twitter" | "facebook" | "linkedin") => {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(article.title);
+    const shareUrls = {
+      twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+      linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${text}`,
+    };
+    window.open(
+      shareUrls[platform],
+      "_blank",
+      "noopener,noreferrer,width=600,height=450",
+    );
+  };
+
+  const handleCopyLink = async () => {
+    if (!navigator.clipboard) {
+      toast.error("Copy to clipboard is not supported in this browser.", {
+        position: "bottom-left",
+        duration: 2500,
+      });
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!", {
+        position: "bottom-left",
+        duration: 2500,
+      });
+    } catch {
+      toast.error("Failed to copy link.", {
+        position: "bottom-left",
+        duration: 2500,
+      });
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container  stagger-card mx-auto px-4 py-8 max-w-4xl">
       {/* Breadcrumb Navigation */}
       <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
         <Link
@@ -404,14 +456,62 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
       )}
 
       {/* Footer Actions */}
-      <div className="mt-8 flex justify-between items-center">
-        <Button
-          variant={"secondary"}
-          nativeButton={false}
-          render={(props) => <Link {...props} href={Routes.HOME} />}
-        >
-          Back to Articles
-        </Button>
+      <div className="mt-8 flex flex-col gap-6">
+        {/* Social Share Section */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Share2 className="h-4 w-4" />
+            <span>Share this article:</span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              className="cursor-pointer gap-2 hover:bg-[#1da1f2] hover:text-white hover:border-[#1da1f2] transition-colors"
+              onClick={() => handleShareSocial("twitter")}
+            >
+              <Twitter className="h-4 w-4" />
+              Twitter / X
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="cursor-pointer gap-2 hover:bg-[#1877f2] hover:text-white hover:border-[#1877f2] transition-colors"
+              onClick={() => handleShareSocial("facebook")}
+            >
+              <Facebook className="h-4 w-4" />
+              Facebook
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="cursor-pointer gap-2 hover:bg-[#0a66c2] hover:text-white hover:border-[#0a66c2] transition-colors"
+              onClick={() => handleShareSocial("linkedin")}
+            >
+              <Linkedin className="h-4 w-4" />
+              LinkedIn
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="cursor-pointer gap-2 hover:bg-muted transition-colors"
+              onClick={handleCopyLink}
+            >
+              <Link2 className="h-4 w-4" />
+              Copy Link
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <Button
+            variant={"secondary"}
+            nativeButton={false}
+            render={(props) => <Link {...props} href={Routes.HOME} />}
+          >
+            Back to Articles
+          </Button>
+        </div>
       </div>
     </div>
   );
