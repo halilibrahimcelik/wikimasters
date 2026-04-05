@@ -28,7 +28,7 @@ describe("AI API Route", () => {
       body: JSON.stringify({
         prompt: {
           text: "Test text",
-          content: "short",
+          content: "hi",
         },
       }),
     });
