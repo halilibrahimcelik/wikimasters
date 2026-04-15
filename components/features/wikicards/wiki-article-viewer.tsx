@@ -132,7 +132,7 @@ const WikiArticleViewer: React.FC<WikiArticleViewerProps> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: {
-            text: "Summarize the following article content in 2-3 sentences. Focus on the main idea and the most important details a reader should remember. Do not add opinions or unrelated information. The point is that readers can see the summary at a glance and decide if they want to read more.",
+            text: "Write exactly one complete sentence (under 30 words) summarizing the article's core message. The sentence must end with a period.",
             content: article.content,
           },
         }),
